@@ -12,9 +12,11 @@ const catImages = [
   "/images/petcat7.jpeg",
   "/images/petcat8.jpeg",
   "/images/petcat9.jpeg",
-   "/images/petcat10.jpeg",
-    "/images/petcat11.jpeg",
-      "/images/petcat12.jpeg",
+  "/images/petcat10.jpeg",
+  "/images/petcat11.jpeg",
+  "/images/petcat12.jpeg",
+  "/images/petcat13.jpeg",
+  "/images/petcat14.jpeg",
 ];
 
 export default function CatPage() {
