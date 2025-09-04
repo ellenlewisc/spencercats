@@ -1,0 +1,83 @@
+.page {
+  min-height: 100vh;
+  width: 100vw;
+  position: relative;
+  background: linear-gradient(180deg, #ff9800 0%, #fff3e0 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-x: hidden;
+  padding-bottom: 48px;
+}
+
+.title {
+ font-size: 2.7rem;
+  color: #d84315;
+  margin-bottom: 10px;
+  margin-top:20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color:#ffd180;
+  margin-bottom: 30px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 0 10px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+
+.catPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 5px solid #ffd180;
+  border-radius: 5%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.catPhoto:hover {
+  transform: scale(1.05);
+}
+
+
+.floatingMeow {
+  position: absolute;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #d84315;
+  animation: fadeOut 1.5s ease forwards;
+  pointer-events: none;
+  z-index: 999;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
