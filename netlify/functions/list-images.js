@@ -22,30 +22,12 @@ export async function handler() {
     }
 
     const jsonString = JSON.stringify(keys);
-    const isLambda = !!process.env.NETLIFY_DEV;
-
-    if (isLambda) {
-      // Local dev: return base64 JSON
-      return {
-        statusCode: 200,
-        headers: { "Content-Type": "application/json" },
-        body: Buffer.from(jsonString).toString("base64"),
-        isBase64Encoded: true,
-      };
-    } else {
-      // Production: return stream JSON
-      const stream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(new TextEncoder().encode(jsonString));
-          controller.close();
-        },
-      });
-
-      return new Response(stream, {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: Buffer.from(jsonString).toString("base64"),
+      isBase64Encoded: true,
+    };
   } catch (err) {
     console.error("Error listing images:", err);
     return { statusCode: 500, body: JSON.stringify({ error: "Failed to list images" }) };
