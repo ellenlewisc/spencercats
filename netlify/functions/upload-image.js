@@ -6,28 +6,23 @@ export default async function handler(req) {
     const fileUpload = formData.get("fileUpload");
 
     if (!fileUpload) {
+      console.error("upload-image error: No file uploaded");
       return new Response("No file uploaded", { status: 400 });
     }
 
-    console.log("Incoming file:", fileUpload.name);
-    console.log("Size (bytes):", fileUpload.size);
-    console.log("Type:", fileUpload.type);
+    console.info("Incoming file:", fileUpload.name);
+    console.info("Size (bytes):", fileUpload.size);
+    console.info("Type:", fileUpload.type);
 
     const catStore = getStore({ name: "Cats", consistency: "strong" });
 
-    // Generate a unique key
+    // Generate a unique key for the file
     const key = `${Date.now()}-${fileUpload.name}`;
 
-    // Use stream if available for large files
-    let fileToStore;
-    if (fileUpload.stream) {
-      fileToStore = fileUpload.stream(); // Use streaming API
-    } else {
-      fileToStore = fileUpload; // fallback for smaller files
-    }
+    // Save the file to the store
+    await catStore.set(key, fileUpload);
 
-    await catStore.set(key, fileToStore);
-    console.log("Upload successful:", key);
+    console.info("Upload successful:", key);
 
     return new Response(JSON.stringify({ key }), {
       status: 200,
