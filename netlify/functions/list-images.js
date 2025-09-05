@@ -7,14 +7,22 @@ export default async function handler() {
     const listResult = await catStore.list();
     console.log("Raw list result:", listResult);
 
-    // Use 'blobs' array if available (sandbox)
+    // Get keys from listResult
     const keys = listResult.keys || listResult.blobs?.map(b => b.key) || [];
     console.log("Keys array:", keys);
+    const promises = keys.map(async (key) => {
+      try {
+        const userUploadBlob = await catStore.get(key);
+        console.log(`Blob for key ${key}:`, userUploadBlob);
+        return userUploadBlob;
+      } catch (err) {
+        console.error(`Failed to get blob for key ${key}:`, err);
+        return null;
+      }
+    });
 
-    // In production, getURL exists
-    const images = keys.map((key) =>
-      typeof catStore.getURL === "function" ? catStore.getURL(key) : `/api/blob/${key}`
-    );
+    const images = await Promise.all(promises);
+  console.log("images", images)
 
     return new Response(JSON.stringify({ images }), {
       status: 200,

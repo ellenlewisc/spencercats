@@ -11,6 +11,7 @@ export default function CatPage() {
     try {
       const res = await fetch("/.netlify/functions/list-images");
       const data = await res.json();
+      console.log("Fetched images:", data.images); // check URLs
       setImages(data.images || []);
     } catch (err) {
       console.error("Error fetching images:", err);
