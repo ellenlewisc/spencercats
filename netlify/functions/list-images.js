@@ -4,22 +4,14 @@ export default async function handler() {
   try {
     const catStore = getStore({ name: "Cats", consistency: "strong" });
 
-    // List all keys in the store
+    // List all keys
     const keysResult = await catStore.list();
     const keys = keysResult.keys || [];
 
-    // Convert each key to a blob URL
-    const images = await Promise.all(
-      keys.map(async (key) => {
-        const blob = await catStore.get(key, { type: "blob" });
-        if (!blob) return null;
-        return URL.createObjectURL(blob);
-      })
-    );
+    // Convert each key to a public URL
+    const images = keys.map((key) => catStore.getURL(key));
 
-    const validImages = images.filter(Boolean);
-
-    return new Response(JSON.stringify({ images: validImages }), {
+    return new Response(JSON.stringify({ images }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
