@@ -7,18 +7,31 @@ export default function CatGallery() {
   const [meows, setMeows] = useState([]);
   const [file, setFile] = useState(null);
   const [deleteKey, setDeleteKey] = useState(null);
+  const [cursor, setCursor] = useState(null);
 
-
-  const fetchImages = async () => {
+  const fetchImages = async (next = false) => {
     try {
-      const res = await fetch("/.netlify/functions/list-images");
+      const query = new URLSearchParams();
+      if (next && cursor) query.append("cursor", cursor);
+      query.append("limit", "20");
+
+      const res = await fetch(`/.netlify/functions/list-images?${query.toString()}`);
       const data = await res.json();
-      setImages(data.reverse());
+      console.log("Fetched images:", data);
+
+      const keys = Array.isArray(data) ? data : [];
+
+      if (next) {
+        setImages((prev) => [...prev, ...keys.reverse()]);
+      } else {
+        setImages(keys.reverse());
+      }
+
+      setCursor(data.nextCursor || null);
     } catch (err) {
       console.error("Failed to fetch images:", err);
     }
   };
-
 
   useEffect(() => {
     fetchImages();
@@ -54,10 +67,8 @@ export default function CatGallery() {
     }
   };
 
+  // Unified handleDelete function
   const handleDelete = async (key) => {
-    const confirmed = window.confirm("Are you sure you want to delete this cat photo?");
-    if (!confirmed) return; // user cancelled
-
     try {
       const res = await fetch(`/.netlify/functions/delete-image?key=${encodeURIComponent(key)}`, {
         method: "DELETE",
@@ -66,12 +77,11 @@ export default function CatGallery() {
       if (!res.ok) throw new Error("Failed to delete");
 
       setImages((prev) => prev.filter((imgKey) => imgKey !== key));
+      setDeleteKey(null);
     } catch (err) {
       console.error("Delete error:", err);
     }
   };
-
-
 
   return (
     <div className={styles.page}>
@@ -117,6 +127,14 @@ export default function CatGallery() {
         ))}
       </div>
 
+      {cursor && (
+        <button
+          className={styles.loadMoreButton}
+          onClick={() => fetchImages(true)}
+        >
+          Load More
+        </button>
+      )}
 
       {meows.map(({ id, top, left }) => (
         <div
@@ -128,42 +146,28 @@ export default function CatGallery() {
         </div>
       ))}
 
-
-{deleteKey && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modal}>
-      <p>Are you sure you want to delete this cat photo?</p>
-      <div className={styles.modalButtons}>
-        <button
-          className={styles.modalCancel}
-          onClick={() => setDeleteKey(null)}
-        >
-          Cancel
-        </button>
-        <button
-          className={styles.modalConfirm}
-          onClick={async () => {
-            try {
-              const res = await fetch(
-                `/.netlify/functions/delete-image?key=${encodeURIComponent(deleteKey)}`,
-                { method: "DELETE" }
-              );
-              if (!res.ok) throw new Error("Delete failed");
-              setImages((prev) => prev.filter((img) => img !== deleteKey));
-              setDeleteKey(null);
-            } catch (err) {
-              console.error("Delete error:", err);
-            }
-          }}
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
+      {/* Modal confirmation */}
+      {deleteKey && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <p>Are you sure you want to delete this cat photo?</p>
+            <div className={styles.modalButtons}>
+              <button
+                className={styles.modalCancel}
+                onClick={() => setDeleteKey(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.modalConfirm}
+                onClick={() => handleDelete(deleteKey)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
