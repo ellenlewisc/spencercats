@@ -13,7 +13,6 @@ export async function handler() {
 
   try {
     const listResult = await catStore.list();
-    console.log("List result:", listResult);
 
     const keys = listResult?.blobs?.map((b) => b.key) || [];
 

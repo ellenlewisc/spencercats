@@ -2,22 +2,32 @@ import { getStore } from "@netlify/blobs";
 
 export default async function handler(req) {
   try {
-
     const formData = await req.formData();
-
-    const fileUpload = formData.get("fileUpload"); 
+    const fileUpload = formData.get("fileUpload");
 
     if (!fileUpload) {
       return new Response("No file uploaded", { status: 400 });
     }
 
+    console.log("Incoming file:", fileUpload.name);
+    console.log("Size (bytes):", fileUpload.size);
+    console.log("Type:", fileUpload.type);
+
     const catStore = getStore({ name: "Cats", consistency: "strong" });
 
-    // Generate a unique key for the file
+    // Generate a unique key
     const key = `${Date.now()}-${fileUpload.name}`;
 
-    // Save the file to the store
-    await catStore.set(key, fileUpload);
+    // Use stream if available for large files
+    let fileToStore;
+    if (fileUpload.stream) {
+      fileToStore = fileUpload.stream(); // Use streaming API
+    } else {
+      fileToStore = fileUpload; // fallback for smaller files
+    }
+
+    await catStore.set(key, fileToStore);
+    console.log("Upload successful:", key);
 
     return new Response(JSON.stringify({ key }), {
       status: 200,
