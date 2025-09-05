@@ -7,11 +7,19 @@ export default function CatGallery() {
   const [meows, setMeows] = useState([]);
   const [file, setFile] = useState(null);
 
+  // Function to fetch the image list
+  const fetchImages = async () => {
+    try {
+      const res = await fetch("/.netlify/functions/list-images");
+      const data = await res.json();
+      setImages(data);
+    } catch (err) {
+      console.error("Failed to fetch images:", err);
+    }
+  };
+
   useEffect(() => {
-    fetch("/.netlify/functions/list-images")
-      .then((res) => res.json())
-      .then((data) => setImages(data))
-      .catch(console.error);
+    fetchImages(); // Load images on mount
   }, []);
 
   const handleCatClick = (e) => {
@@ -38,7 +46,7 @@ export default function CatGallery() {
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
-      fetchImages();
+      fetchImages(); // Refresh images after upload
     } catch (err) {
       console.error("Upload error:", err);
     }
@@ -49,27 +57,25 @@ export default function CatGallery() {
       <h1 className={styles.title}>Spencie and cats</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
 
-
       <div className={styles.uploadContainer}>
-  <input
-    type="file"
-    accept="image/*"
-    id="fileUpload"
-    onChange={(e) => setFile(e.target.files[0])}
-    className={styles.hiddenInput}
-  />
-  <label htmlFor="fileUpload" className={styles.uploadLabel}>
-    {file ? file.name : "Choose a file"}
-  </label>
-  <button
-    className={styles.uploadButton}
-    onClick={handleUpload}
-    disabled={!file}
-  >
-    Upload
-  </button>
-</div>
-
+        <input
+          type="file"
+          accept="image/*"
+          id="fileUpload"
+          onChange={(e) => setFile(e.target.files[0])}
+          className={styles.hiddenInput}
+        />
+        <label htmlFor="fileUpload" className={styles.uploadLabel}>
+          {file ? file.name : "Choose a file"}
+        </label>
+        <button
+          className={styles.uploadButton}
+          onClick={handleUpload}
+          disabled={!file}
+        >
+          Upload
+        </button>
+      </div>
 
       <div className={styles.grid}>
         {images.map((key) => (
