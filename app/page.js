@@ -7,7 +7,6 @@ export default function CatPage() {
   const [images, setImages] = useState([]);
   const [file, setFile] = useState(null);
 
-  // Load all images
   const fetchImages = async () => {
     try {
       const res = await fetch("/.netlify/functions/list-images");
@@ -22,24 +21,16 @@ export default function CatPage() {
     fetchImages();
   }, []);
 
-  // Click animation
   const handleCatClick = (e) => {
     const rect = e.target.getBoundingClientRect();
-    const scrollTop = window.scrollY;
-    const scrollLeft = window.scrollX;
-
-    const top = rect.top + scrollTop + rect.height / 2;
-    const left = rect.left + scrollLeft + rect.width / 2;
-
+    const top = rect.top + window.scrollY + rect.height / 2;
+    const left = rect.left + window.scrollX + rect.width / 2;
     const id = Math.random().toString(36).slice(2, 11);
-    setMeows((prev) => [...prev, { id, top, left }]);
 
-    setTimeout(() => {
-      setMeows((prev) => prev.filter((m) => m.id !== id));
-    }, 1700);
+    setMeows((prev) => [...prev, { id, top, left }]);
+    setTimeout(() => setMeows((prev) => prev.filter((m) => m.id !== id)), 1700);
   };
 
-  // Upload using formData
   const handleUpload = async () => {
     if (!file) return;
 
@@ -53,8 +44,8 @@ export default function CatPage() {
       });
       if (!res.ok) throw new Error("Upload failed");
 
-      setFile(null); // clear input
-      fetchImages(); // refresh images
+      setFile(null);
+      fetchImages(); // refresh
     } catch (err) {
       console.error("Upload error:", err);
     }

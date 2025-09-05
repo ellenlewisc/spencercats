@@ -4,12 +4,17 @@ export default async function handler() {
   try {
     const catStore = getStore({ name: "Cats", consistency: "strong" });
 
-    // List all keys
-    const keysResult = await catStore.list();
-    const keys = keysResult.keys || [];
+    const listResult = await catStore.list();
+    console.log("Raw list result:", listResult);
 
-    // Convert each key to a public URL
-    const images = keys.map((key) => catStore.getURL(key));
+    // Use 'blobs' array if available (sandbox)
+    const keys = listResult.keys || listResult.blobs?.map(b => b.key) || [];
+    console.log("Keys array:", keys);
+
+    // In production, getURL exists
+    const images = keys.map((key) =>
+      typeof catStore.getURL === "function" ? catStore.getURL(key) : `/api/blob/${key}`
+    );
 
     return new Response(JSON.stringify({ images }), {
       status: 200,
