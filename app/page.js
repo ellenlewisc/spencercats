@@ -12,7 +12,7 @@ export default function CatGallery() {
     try {
       const res = await fetch("/.netlify/functions/list-images");
       const data = await res.json();
-      setImages(data);
+      setImages(data.reverse()); 
     } catch (err) {
       console.error("Failed to fetch images:", err);
     }
