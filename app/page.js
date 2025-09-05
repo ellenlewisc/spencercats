@@ -38,6 +38,7 @@ export default function CatGallery() {
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
+      fetchImages();
     } catch (err) {
       console.error("Upload error:", err);
     }
