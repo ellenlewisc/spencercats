@@ -71,3 +71,6 @@ _ReSharper*/
 .vs/
 #Nuget packages folder
 packages/
+
+# Local Netlify folder
+.netlify
