@@ -22,7 +22,7 @@ export default async function handler() {
     });
 
     const images = await Promise.all(promises);
-  console.log("images", images)
+    console.log("images", images)
 
     return new Response(JSON.stringify({ images }), {
       status: 200,
