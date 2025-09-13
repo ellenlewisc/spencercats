@@ -7,19 +7,22 @@ export default function CatGallery() {
   const [meows, setMeows] = useState([]);
   const [file, setFile] = useState(null);
   const [deleteKey, setDeleteKey] = useState(null);
-  const [cursor, setCursor] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const fetchImages = async (next = false) => {
     try {
+      const targetPage = next ? page + 1 : 1;
+
       const query = new URLSearchParams();
-      if (next && cursor) query.append("cursor", cursor);
-      query.append("limit", "20");
+      query.append("page", targetPage.toString());
+      query.append("limit", "10");
 
       const res = await fetch(`/.netlify/functions/list-images?${query.toString()}`);
       const data = await res.json();
       console.log("Fetched images:", data);
 
-      const keys = Array.isArray(data) ? data : [];
+      const keys = Array.isArray(data.keys) ? data.keys : [];
 
       if (next) {
         setImages((prev) => [...prev, ...keys.reverse()]);
@@ -27,7 +30,8 @@ export default function CatGallery() {
         setImages(keys.reverse());
       }
 
-      setCursor(data.nextCursor || null);
+      setPage(targetPage);
+      setHasMore(data.hasMore);
     } catch (err) {
       console.error("Failed to fetch images:", err);
     }
@@ -67,12 +71,12 @@ export default function CatGallery() {
     }
   };
 
-  // Unified handleDelete function
   const handleDelete = async (key) => {
     try {
-      const res = await fetch(`/.netlify/functions/delete-image?key=${encodeURIComponent(key)}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `/.netlify/functions/delete-image?key=${encodeURIComponent(key)}`,
+        { method: "DELETE" }
+      );
 
       if (!res.ok) throw new Error("Failed to delete");
 
@@ -127,7 +131,7 @@ export default function CatGallery() {
         ))}
       </div>
 
-      {cursor && (
+      {hasMore && (
         <button
           className={styles.loadMoreButton}
           onClick={() => fetchImages(true)}
@@ -146,7 +150,6 @@ export default function CatGallery() {
         </div>
       ))}
 
-      {/* Modal confirmation */}
       {deleteKey && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
