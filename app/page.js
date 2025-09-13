@@ -9,6 +9,9 @@ export default function CatGallery() {
   const [deleteKey, setDeleteKey] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadMode, setUploadMode] = useState(false);
 
   const fetchImages = async (next = false) => {
     try {
@@ -20,7 +23,6 @@ export default function CatGallery() {
 
       const res = await fetch(`/.netlify/functions/list-images?${query.toString()}`);
       const data = await res.json();
-      console.log("Fetched images:", data);
 
       const keys = Array.isArray(data.keys) ? data.keys : [];
 
@@ -54,6 +56,9 @@ export default function CatGallery() {
   const handleUpload = async () => {
     if (!file) return;
 
+    setUploading(true);
+    setUploadSuccess(false);
+
     const formData = new FormData();
     formData.append("fileUpload", file);
 
@@ -65,9 +70,13 @@ export default function CatGallery() {
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
-      fetchImages(); // Refresh images after upload
+      setUploadSuccess(true);
+      fetchImages();
+      setTimeout(() => setUploadSuccess(false), 2000);
     } catch (err) {
       console.error("Upload error:", err);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -92,25 +101,40 @@ export default function CatGallery() {
       <h1 className={styles.title}>Spencie and cats</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
 
-      <div className={styles.uploadContainer}>
-        <input
-          type="file"
-          accept="image/*"
-          id="fileUpload"
-          onChange={(e) => setFile(e.target.files[0])}
-          className={styles.hiddenInput}
-        />
-        <label htmlFor="fileUpload" className={styles.uploadLabel}>
-          {file ? file.name : "Choose a file"}
-        </label>
-        <button
-          className={styles.uploadButton}
-          onClick={handleUpload}
-          disabled={!file}
-        >
-          Upload
-        </button>
-      </div>
+      {/* Top-right cat button to toggle upload mode */}
+      <button
+        className={styles.catToggleButton}
+        onClick={() => setUploadMode((prev) => !prev)}
+        title=""
+      >
+        🐱
+      </button>
+
+      {/* Upload UI */}
+      {uploadMode && (
+        <div className={styles.uploadContainer}>
+          <input
+            type="file"
+            accept="image/*"
+            id="fileUpload"
+            onChange={(e) => setFile(e.target.files[0])}
+            className={styles.hiddenInput}
+          />
+          <label htmlFor="fileUpload" className={styles.uploadLabel}>
+            {file ? file.name : "Choose a file"}
+          </label>
+          <button
+            className={styles.uploadButton}
+            onClick={handleUpload}
+            disabled={!file || uploading}
+          >
+            {uploading ? "Uploading..." : "Upload"}
+          </button>
+          {uploadSuccess && (
+            <span className={styles.successMessage}>Upload successful.</span>
+          )}
+        </div>
+      )}
 
       <div className={styles.grid}>
         {images.map((key) => (
@@ -121,12 +145,14 @@ export default function CatGallery() {
               className={styles.catPhoto}
               onClick={handleCatClick}
             />
-            <button
-              className={styles.deleteButton}
-              onClick={() => setDeleteKey(key)}
-            >
-              ×
-            </button>
+            {uploadMode && (
+              <button
+                className={styles.deleteButton}
+                onClick={() => setDeleteKey(key)}
+              >
+                ×
+              </button>
+            )}
           </div>
         ))}
       </div>
