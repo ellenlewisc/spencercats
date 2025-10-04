@@ -44,6 +44,7 @@ export async function handler(event) {
   const hasMore = keys.length > limit;
   if (hasMore) keys.splice(limit);
 
+  console.log(keys)
   return {
     statusCode: 200,
     headers: { "Content-Type": "application/json" },
