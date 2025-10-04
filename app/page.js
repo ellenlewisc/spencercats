@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 
 export default function CatGallery() {
@@ -9,6 +9,7 @@ export default function CatGallery() {
   const [deleteKey, setDeleteKey] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadMode, setUploadMode] = useState(false);
@@ -19,38 +20,64 @@ export default function CatGallery() {
     if (cached) {
       const keys = JSON.parse(cached);
       setImages(keys);
-      setHasMore(false); // assume full cached list for simplicity
+      setHasMore(false);
     } else {
       fetchImages();
     }
   }, []);
 
   // Fetch images
-  const fetchImages = async (next = false) => {
-    try {
-      const targetPage = next ? page + 1 : 1;
-      const query = new URLSearchParams({ page: targetPage, limit: "10" });
-      const res = await fetch(`/.netlify/functions/list-images?${query.toString()}`);
-      const data = await res.json();
-      const keys = Array.isArray(data.keys) ? data.keys : [];
+  const fetchImages = useCallback(
+    async (next = false) => {
+      if (loading) return;
+      setLoading(true);
 
-      if (next) {
-        setImages((prev) => {
-          const combined = [...prev, ...keys];
-          localStorage.setItem("catKeys", JSON.stringify(combined));
-          return combined;
-        });
-      } else {
-        setImages(keys);
-        localStorage.setItem("catKeys", JSON.stringify(keys));
+      try {
+        const targetPage = next ? page + 1 : 1;
+        const query = new URLSearchParams({ page: targetPage, limit: "10" });
+        const res = await fetch(`/.netlify/functions/list-images?${query.toString()}`);
+        const data = await res.json();
+        const keys = Array.isArray(data.keys) ? data.keys : [];
+
+        if (next) {
+          setImages((prev) => {
+            const combined = [...prev, ...keys];
+            localStorage.setItem("catKeys", JSON.stringify(combined));
+            return combined;
+          });
+        } else {
+          setImages(keys);
+          localStorage.setItem("catKeys", JSON.stringify(keys));
+        }
+
+        setPage(targetPage);
+        setHasMore(data.hasMore);
+      } catch (err) {
+        console.error("Failed to fetch images:", err);
+      } finally {
+        setLoading(false);
       }
+    },
+    [page, loading]
+  );
 
-      setPage(targetPage);
-      setHasMore(data.hasMore);
-    } catch (err) {
-      console.error("Failed to fetch images:", err);
-    }
-  };
+  // Infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!hasMore || loading) return;
+
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+
+      if (scrollTop + windowHeight >= docHeight - 100) {
+        fetchImages(true);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [fetchImages, hasMore, loading]);
 
   // Floating "meow" effect
   const handleCatClick = (e) => {
@@ -66,14 +93,12 @@ export default function CatGallery() {
   // Handle image upload
   const handleUpload = async () => {
     if (!file) return;
-
     setUploading(true);
     setUploadSuccess(false);
 
     const formData = new FormData();
     formData.append("fileUpload", file);
 
-    //NOTE upload does not work in dev mode only prod
     try {
       const res = await fetch("/.netlify/functions/upload-image", {
         method: "POST",
@@ -84,7 +109,6 @@ export default function CatGallery() {
       setFile(null);
       setUploadSuccess(true);
 
-      // Clear cache and reload images automatically
       localStorage.removeItem("catKeys");
       setPage(1);
       setHasMore(true);
@@ -106,7 +130,6 @@ export default function CatGallery() {
       });
       if (!res.ok) throw new Error("Failed to delete");
 
-      // Clear cache and reload images automatically
       localStorage.removeItem("catKeys");
       setPage(1);
       setHasMore(true);
@@ -123,7 +146,6 @@ export default function CatGallery() {
       <h1 className={styles.title}>Spencie and cats</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
 
-      {/* Top-right cat button to toggle upload mode */}
       <button
         className={styles.catToggleButton}
         onClick={() => setUploadMode((prev) => !prev)}
@@ -132,7 +154,6 @@ export default function CatGallery() {
         🐱
       </button>
 
-      {/* Upload UI */}
       {uploadMode && (
         <div className={styles.uploadContainer}>
           <input
@@ -145,18 +166,13 @@ export default function CatGallery() {
           <label htmlFor="fileUpload" className={styles.uploadLabel}>
             {file ? file.name : "Choose a file"}
           </label>
-          <button
-            className={styles.uploadButton}
-            onClick={handleUpload}
-            disabled={!file || uploading}
-          >
+          <button className={styles.uploadButton} onClick={handleUpload} disabled={!file || uploading}>
             {uploading ? "Uploading..." : "Upload"}
           </button>
           {uploadSuccess && <span className={styles.successMessage}>Upload successful.</span>}
         </div>
       )}
 
-      {/* Cat grid */}
       <div className={styles.grid}>
         {images.map((key) => (
           <div key={key} className={styles.catContainer}>
@@ -175,21 +191,18 @@ export default function CatGallery() {
         ))}
       </div>
 
-      {/* Load more button */}
-      {hasMore && (
-        <button className={styles.loadMoreButton} onClick={() => fetchImages(true)}>
-          Load More
-        </button>
+      {loading && (
+        <div className={styles.spinnerContainer}>
+          <div className={styles.spinner}>Loading...</div>
+        </div>
       )}
 
-      {/* Floating meows */}
       {meows.map(({ id, top, left }) => (
         <div key={id} className={styles.floatingMeow} style={{ top: `${top}px`, left: `${left}px` }}>
           Meow 🐱
         </div>
       ))}
 
-      {/* Delete confirmation modal */}
       {deleteKey && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
@@ -198,9 +211,7 @@ export default function CatGallery() {
               <button className={styles.modalCancel} onClick={() => setDeleteKey(null)}>
                 Cancel
               </button>
-              <button className={styles.modalConfirm} onClick={() => handleDelete(deleteKey)}>
-                Delete
-              </button>
+              <button className={styles.modalConfirm} onClick={() => handleDelete(deleteKey)}>Delete</button>
             </div>
           </div>
         </div>
