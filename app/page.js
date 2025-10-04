@@ -13,23 +13,36 @@ export default function CatGallery() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadMode, setUploadMode] = useState(false);
 
+  // Load cached images on mount
+  useEffect(() => {
+    const cached = localStorage.getItem("catKeys");
+    if (cached) {
+      const keys = JSON.parse(cached);
+      setImages(keys);
+      setHasMore(false); // assume full cached list for simplicity
+    } else {
+      fetchImages();
+    }
+  }, []);
+
+  // Fetch images
   const fetchImages = async (next = false) => {
     try {
       const targetPage = next ? page + 1 : 1;
-
-      const query = new URLSearchParams();
-      query.append("page", targetPage.toString());
-      query.append("limit", "10");
-
+      const query = new URLSearchParams({ page: targetPage, limit: "10" });
       const res = await fetch(`/.netlify/functions/list-images?${query.toString()}`);
       const data = await res.json();
-
       const keys = Array.isArray(data.keys) ? data.keys : [];
 
       if (next) {
-        setImages((prev) => [...prev, ...keys.reverse()]);
+        setImages((prev) => {
+          const combined = [...prev, ...keys];
+          localStorage.setItem("catKeys", JSON.stringify(combined));
+          return combined;
+        });
       } else {
-        setImages(keys.reverse());
+        setImages(keys);
+        localStorage.setItem("catKeys", JSON.stringify(keys));
       }
 
       setPage(targetPage);
@@ -39,10 +52,7 @@ export default function CatGallery() {
     }
   };
 
-  useEffect(() => {
-    fetchImages();
-  }, []);
-
+  // Floating "meow" effect
   const handleCatClick = (e) => {
     const rect = e.target.getBoundingClientRect();
     const top = rect.top + window.scrollY + rect.height / 2;
@@ -53,6 +63,7 @@ export default function CatGallery() {
     setTimeout(() => setMeows((prev) => prev.filter((m) => m.id !== id)), 1700);
   };
 
+  // Handle image upload
   const handleUpload = async () => {
     if (!file) return;
 
@@ -71,7 +82,13 @@ export default function CatGallery() {
 
       setFile(null);
       setUploadSuccess(true);
+
+      // Clear cache and reload images automatically
+      localStorage.removeItem("catKeys");
+      setPage(1);
+      setHasMore(true);
       fetchImages();
+
       setTimeout(() => setUploadSuccess(false), 2000);
     } catch (err) {
       console.error("Upload error:", err);
@@ -80,16 +97,20 @@ export default function CatGallery() {
     }
   };
 
+  // Handle image delete
   const handleDelete = async (key) => {
     try {
-      const res = await fetch(
-        `/.netlify/functions/delete-image?key=${encodeURIComponent(key)}`,
-        { method: "DELETE" }
-      );
-
+      const res = await fetch(`/.netlify/functions/delete-image?key=${encodeURIComponent(key)}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("Failed to delete");
 
-      setImages((prev) => prev.filter((imgKey) => imgKey !== key));
+      // Clear cache and reload images automatically
+      localStorage.removeItem("catKeys");
+      setPage(1);
+      setHasMore(true);
+      fetchImages();
+
       setDeleteKey(null);
     } catch (err) {
       console.error("Delete error:", err);
@@ -105,7 +126,7 @@ export default function CatGallery() {
       <button
         className={styles.catToggleButton}
         onClick={() => setUploadMode((prev) => !prev)}
-        title=""
+        title="Toggle upload mode"
       >
         🐱
       </button>
@@ -130,12 +151,11 @@ export default function CatGallery() {
           >
             {uploading ? "Uploading..." : "Upload"}
           </button>
-          {uploadSuccess && (
-            <span className={styles.successMessage}>Upload successful.</span>
-          )}
+          {uploadSuccess && <span className={styles.successMessage}>Upload successful.</span>}
         </div>
       )}
 
+      {/* Cat grid */}
       <div className={styles.grid}>
         {images.map((key) => (
           <div key={key} className={styles.catContainer}>
@@ -146,10 +166,7 @@ export default function CatGallery() {
               onClick={handleCatClick}
             />
             {uploadMode && (
-              <button
-                className={styles.deleteButton}
-                onClick={() => setDeleteKey(key)}
-              >
+              <button className={styles.deleteButton} onClick={() => setDeleteKey(key)}>
                 ×
               </button>
             )}
@@ -157,40 +174,30 @@ export default function CatGallery() {
         ))}
       </div>
 
+      {/* Load more button */}
       {hasMore && (
-        <button
-          className={styles.loadMoreButton}
-          onClick={() => fetchImages(true)}
-        >
+        <button className={styles.loadMoreButton} onClick={() => fetchImages(true)}>
           Load More
         </button>
       )}
 
+      {/* Floating meows */}
       {meows.map(({ id, top, left }) => (
-        <div
-          key={id}
-          className={styles.floatingMeow}
-          style={{ top: `${top}px`, left: `${left}px` }}
-        >
+        <div key={id} className={styles.floatingMeow} style={{ top: `${top}px`, left: `${left}px` }}>
           Meow 🐱
         </div>
       ))}
 
+      {/* Delete confirmation modal */}
       {deleteKey && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <p>Are you sure you want to delete this cat photo?</p>
             <div className={styles.modalButtons}>
-              <button
-                className={styles.modalCancel}
-                onClick={() => setDeleteKey(null)}
-              >
+              <button className={styles.modalCancel} onClick={() => setDeleteKey(null)}>
                 Cancel
               </button>
-              <button
-                className={styles.modalConfirm}
-                onClick={() => handleDelete(deleteKey)}
-              >
+              <button className={styles.modalConfirm} onClick={() => handleDelete(deleteKey)}>
                 Delete
               </button>
             </div>
