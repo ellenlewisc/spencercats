@@ -73,6 +73,7 @@ export default function CatGallery() {
     const formData = new FormData();
     formData.append("fileUpload", file);
 
+    //NOTE upload does not work in dev mode only prod
     try {
       const res = await fetch("/.netlify/functions/upload-image", {
         method: "POST",

@@ -19,7 +19,7 @@ export async function handler(event) {
 
   // Always prod: explicit credentials
   const store = getStore({
-    name: "Cats", // change to "Cats" if that's your store
+    name: "Cats", 
     consistency: "strong",
     siteID,
     token,
