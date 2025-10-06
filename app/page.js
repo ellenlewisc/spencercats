@@ -48,7 +48,7 @@ export default function CatGallery() {
       const windowHeight = window.innerHeight;
       const docHeight = document.documentElement.scrollHeight;
 
-      if (scrollTop + windowHeight >= docHeight - 100) {
+      if (scrollTop + windowHeight >= docHeight - 500) {
         loadMoreImages();
       }
     };
