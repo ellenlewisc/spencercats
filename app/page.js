@@ -26,7 +26,7 @@ export default function CatGallery() {
         console.log("Fetched images:", data);
 
         const sorted = Array.isArray(data)
-          ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0])) 
+          ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
           : [];
 
         setAllKeys(sorted);
@@ -48,7 +48,7 @@ export default function CatGallery() {
       const windowHeight = window.innerHeight;
       const docHeight = document.documentElement.scrollHeight;
 
-      if (scrollTop + windowHeight >= docHeight - 500) {
+      if (scrollTop + windowHeight >= docHeight - 1000) {
         loadMoreImages();
       }
     };
@@ -175,6 +175,22 @@ export default function CatGallery() {
           {uploadSuccess && <span className={styles.successMessage}>Upload successful.</span>}
         </div>
       )}
+      <img
+        src="/images/cat.png"
+        alt="CAT"
+        onClick={handleCatClick}
+        style={{
+          width: "300px",
+          height: "auto",
+          display: "block",
+          cursor: "pointer",
+          objectFit: "contain",
+          backgroundColor: "#ffd180;",
+          padding:"40px",
+           borderRadius:"20px",
+           margin:"20px auto"
+        }}
+      />
 
       <div className={styles.grid}>
         {visibleKeys.map((key) => (
