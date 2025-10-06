@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 
 export default function CatGallery() {
-  const [allKeys, setAllKeys] = useState([]); // all image keys from backend
-  const [visibleKeys, setVisibleKeys] = useState([]); // currently rendered images
+  const [allKeys, setAllKeys] = useState([]); 
+  const [visibleKeys, setVisibleKeys] = useState([]); 
   const [page, setPage] = useState(1);
   const perPage = 10;
 
@@ -184,7 +184,7 @@ export default function CatGallery() {
           backgroundColor: "#ffd180;",
           padding:"40px",
            borderRadius:"20px",
-           margin:"20px auto"
+           marginBottom:"20px"
         }}
       />
 
