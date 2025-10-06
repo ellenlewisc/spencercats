@@ -123,10 +123,9 @@ export default function CatGallery() {
       // Refresh all keys and reset visible keys
       const refresh = await fetch("/.netlify/functions/list-images");
       const data = await refresh.json();
-      const sorted = Array.isArray(data)
-        ? data.sort((a, b) => parseInt(a.split("-")[0]) - parseInt(b.split("-")[0]))
-        : [];
-
+         const sorted = Array.isArray(data)
+          ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
+          : [];
       setAllKeys(sorted);
       setVisibleKeys(sorted.slice(0, perPage));
       setPage(1);
