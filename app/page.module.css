@@ -49,11 +49,10 @@
 /* --- Upload Section --- */
 .uploadContainer {
   position: fixed; 
-  top: 50px;      
+  top: 35px;      
   right: 50%;    
   transform: translateX(50%); 
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 152, 0, 0.2);
   border-radius: 12px;
   padding: 20px 30px;
   display: flex;
@@ -63,7 +62,8 @@
 }
 
 .uploadLabel {
-  color: #ff9b4a;;
+  color: #ff9b4a;
+  border: 1px solid #ff9800;
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
