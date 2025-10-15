@@ -137,19 +137,9 @@ export default function CatGallery() {
   };
 
   return (
+
     <div className={styles.page}>
-      <h1 className={styles.title}>SPENCIE AND CATS</h1>
-      <p className={styles.subtitle}>meow meow pspspsi</p>
-
-      <button
-        className={styles.catToggleButton}
-        onClick={() => setUploadMode((prev) => !prev)}
-        title="Toggle upload mode"
-      >
-        🐱
-      </button>
-
-      {uploadMode && (
+            {uploadMode && (
         <div className={styles.uploadContainer}>
           <input
             type="file"
@@ -173,6 +163,17 @@ export default function CatGallery() {
           )}
         </div>
       )}
+      <h1 className={styles.title}>SPENCIE AND CATS</h1>
+      <p className={styles.subtitle}>meow meow pspspsi</p>
+
+      <button
+        className={styles.catToggleButton}
+        onClick={() => setUploadMode((prev) => !prev)}
+        title="Toggle upload mode"
+      >
+        🐱
+      </button>
+
 
       <img
         src="/images/cat.png"
