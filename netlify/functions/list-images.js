@@ -1,33 +1,21 @@
-import { getStore } from "@netlify/blobs";
+import { createClient } from "@supabase/supabase-js";
 
-export async function handler() {
-  const siteID = process.env.NETLIFY_SITE_ID;
-  const token = process.env.NETLIFY_AUTH_TOKEN;
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
-  const catStore = getStore({
-    name: "Cats",
-    consistency: "strong",
-    ...(siteID && { siteID }),
-    ...(token && { token }),
-  });
+export const handler = async () => {
+  const { data, error } = await supabase
+    .from("cats")
+    .select("key")
+    .order("uploaded_at", { ascending: false });
 
-  try {
-    const listResult = await catStore.list();
-
-     const keys = listResult?.blobs?.map(b => b.key).reverse() || [];
-    if (keys.length === 0) {
-      return { statusCode: 404, body: "No images found" };
-    }
-
-    const jsonString = JSON.stringify(keys);
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: Buffer.from(jsonString).toString("base64"),
-      isBase64Encoded: true,
-    };
-  } catch (err) {
-    console.error("Error listing images:", err);
-    return { statusCode: 500, body: JSON.stringify({ error: "Failed to list images" }) };
+  if (error) {
+    console.error(error);
+    return { statusCode: 500, body: "Failed to list images" };
   }
-}
+
+  const keys = data.map((row) => row.key);
+  return { statusCode: 200, body: JSON.stringify(keys) };
+};

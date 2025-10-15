@@ -1,4 +1,9 @@
 import { getStore } from "@netlify/blobs";
+import { createClient } from "@supabase/supabase-js";
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 export default async function handler(req) {
   try {
@@ -23,6 +28,16 @@ export default async function handler(req) {
     await catStore.set(key, fileUpload);
 
     console.info("Upload successful:", key);
+
+    const { error } = await supabase.from("cats").insert([{ key }]);
+
+      if (error) {
+      console.error("Supabase insert error:", error);
+      return new Response("Failed to save metadata", { status: 500 });
+    }
+
+    console.info("Supabase insert successful:", key);
+
 
     return new Response(JSON.stringify({ key }), {
       status: 200,
