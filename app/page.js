@@ -149,7 +149,7 @@ export default function CatGallery() {
             className={styles.hiddenInput}
           />
           <label htmlFor="fileUpload" className={styles.uploadLabel}>
-            {file ? file.name : "Choose a file"}
+            {file ? file.name : "Choose file"}
           </label>
           <button
             className={styles.uploadButton}
@@ -163,6 +163,7 @@ export default function CatGallery() {
           )}
         </div>
       )}
+
       <h1 className={styles.title}>SPENCIE AND CATS</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
 
