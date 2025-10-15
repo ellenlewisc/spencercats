@@ -1,5 +1,9 @@
 import { getStore } from "@netlify/blobs";
-
+import { createClient } from "@supabase/supabase-js";
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 export async function handler(event) {
   if (event.httpMethod !== "DELETE") {
     return { statusCode: 405, body: "Method Not Allowed" };
@@ -22,6 +26,7 @@ export async function handler(event) {
 
   try {
     await catStore.delete(key);
+    await supabase.from("cats").delete().eq("key", key);
     return { statusCode: 200, body: "Deleted successfully" };
   } catch (err) {
     console.error("Delete failed:", err);
