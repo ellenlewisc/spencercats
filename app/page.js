@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 
 export default function CatGallery() {
-  const [allKeys, setAllKeys] = useState([]); 
-  const [visibleKeys, setVisibleKeys] = useState([]); 
+  const [allKeys, setAllKeys] = useState([]);
+  const [visibleKeys, setVisibleKeys] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 10;
 
@@ -99,11 +99,11 @@ export default function CatGallery() {
       // Refresh all keys and reset visible keys
       const refresh = await fetch("/.netlify/functions/list-images");
       const data = await refresh.json();
-       const sorted = Array.isArray(data)
-          ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
-          : [];
-    setAllKeys(sorted);
-        setVisibleKeys(sorted.slice(0, perPage));
+      const sorted = Array.isArray(data)
+        ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
+        : [];
+      setAllKeys(sorted);
+      setVisibleKeys(sorted.slice(0, perPage));
       setTimeout(() => setUploadSuccess(false), 1000);
     } catch (err) {
       console.error("Upload error:", err);
@@ -123,9 +123,9 @@ export default function CatGallery() {
       // Refresh all keys and reset visible keys
       const refresh = await fetch("/.netlify/functions/list-images");
       const data = await refresh.json();
-         const sorted = Array.isArray(data)
-          ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
-          : [];
+      const sorted = Array.isArray(data)
+        ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
+        : [];
       setAllKeys(sorted);
       setVisibleKeys(sorted.slice(0, perPage));
       setPage(1);
@@ -138,7 +138,7 @@ export default function CatGallery() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Spencie and cats</h1>
+      <h1 className={styles.title}>SPENCIE AND CATS</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
 
       <button
@@ -168,9 +168,12 @@ export default function CatGallery() {
           >
             {uploading ? "Uploading..." : "Upload"}
           </button>
-          {uploadSuccess && <span className={styles.successMessage}>Upload successful.</span>}
+          {uploadSuccess && (
+            <span className={styles.successMessage}>Upload successful.</span>
+          )}
         </div>
       )}
+
       <img
         src="/images/cat.png"
         alt="CAT"
@@ -181,34 +184,41 @@ export default function CatGallery() {
           display: "block",
           cursor: "pointer",
           objectFit: "contain",
-          backgroundColor: "#ffd180;",
-          padding:"40px",
-           borderRadius:"20px",
-           marginBottom:"20px"
+          padding: "40px",
+          borderRadius: "20px",
+          marginLeft: "50px",
         }}
       />
 
-      <div className={styles.grid}>
-        {visibleKeys.map((key) => (
-          <div key={key} className={styles.catContainer}>
-            <img
-              src={`/.netlify/functions/get-image?key=${encodeURIComponent(key)}`}
-              alt={key}
-              className={styles.catPhoto}
-              onClick={handleCatClick}
-            />
-            {uploadMode && (
-              <button className={styles.deleteButton} onClick={() => setDeleteKey(key)}>
-                ×
-              </button>
-            )}
-          </div>
-        ))}
+      <div
+        className={`${visibleKeys.length > 0 ? styles.gridVisible : ""
+          }`}
+      >
+        <div className={styles.grid}>
+          {visibleKeys.map((key) => (
+            <div key={key} className={styles.catContainer}>
+              <img
+                src={`/.netlify/functions/get-image?key=${encodeURIComponent(key)}`}
+                alt={key}
+                className={styles.catPhoto}
+                onClick={handleCatClick}
+              />
+              {uploadMode && (
+                <button
+                  className={styles.deleteButton}
+                  onClick={() => setDeleteKey(key)}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {loading && (
         <div className={styles.spinnerContainer}>
-          <div className={styles.spinner}>Loading...</div>
+          <div className={styles.spinner}></div>
         </div>
       )}
 
