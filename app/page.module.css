@@ -43,7 +43,6 @@
 
 .page > img[alt="CAT"]:hover {
   transform: scale(1.05);
-  filter: drop-shadow(0 0 18px rgba(255, 152, 0, 0.6));
 }
 
 /* --- Upload Section --- */
