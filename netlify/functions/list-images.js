@@ -5,21 +5,25 @@ const supabase = createClient(
   process.env.SUPABASE_KEY
 );
 
-export default async function handler() {
+export default async function handler(req) {
   try {
-    // Fetch key and value from Supabase
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
     const { data, error } = await supabase
       .from("CatImages")
-      .select("key, value")
-      .order("uploaded_at", { ascending: false });
+      .select("key, value") 
+      .range(from, to);
 
     if (error) {
       console.error("Supabase list error:", error);
       return new Response("Failed to list images", { status: 500 });
     }
 
-    // Return array of objects like: [{ key: "...", value: "..." }, ...]
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({ data }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

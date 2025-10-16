@@ -1,13 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import styles from "./page.module.css";
 
 export default function CatGallery() {
-  const [allKeys, setAllKeys] = useState([]);
   const [visibleKeys, setVisibleKeys] = useState([]);
   const [page, setPage] = useState(1);
-  const perPage = 10;
-
+  const [total, setTotal] = useState(0);
+  const perPage = 20;
+  const [hasMore, setHasMore] = useState(true);
   const [meows, setMeows] = useState([]);
   const [file, setFile] = useState(null);
   const [deleteKey, setDeleteKey] = useState(null);
@@ -16,57 +16,65 @@ export default function CatGallery() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadMode, setUploadMode] = useState(false);
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("/.netlify/functions/list-images");
-        const data = await res.json();
+  const loadingRef = useRef(false);
 
-        const sorted = Array.isArray(data)
-          ? data.sort(
-            (a, b) =>
-              parseInt(b.key.split("-")[0]) - parseInt(a.key.split("-")[0])
-          )
-          : [];
+  const fetchImages = async (pageToFetch = 1) => {
+    if (loadingRef.current || !hasMore) return;
+    loadingRef.current = true;
+    setLoading(true);
 
-        setAllKeys(sorted);
-        setVisibleKeys(sorted.slice(0, perPage));
-      } catch (err) {
-        console.error("Failed to fetch images:", err);
-      } finally {
-        setLoading(false);
+    try {
+      const res = await fetch(`/.netlify/functions/list-images?page=${pageToFetch}&limit=${perPage}`);
+      const { data } = await res.json();
+
+      if (!data || data.length === 0) {
+        setHasMore(false);
+        return;
       }
-    };
 
-    fetchImages();
+      if (pageToFetch === 1) {
+        setVisibleKeys(data);
+      } else {
+        setVisibleKeys((prev) => [...prev, ...data]);
+      }
+
+      if (data.length < perPage) setHasMore(false);
+
+      setPage(pageToFetch);
+    } catch (err) {
+      console.error("Failed to fetch images:", err);
+    } finally {
+      setLoading(false);
+      loadingRef.current = false;
+    }
+  };
+
+
+
+  // Initial fetch
+  useEffect(() => {
+    fetchImages(1);
   }, []);
 
-
-  // Infinite scroll for loading more images
+  // Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
+      if (loadingRef.current || !hasMore) return;
+
       const scrollTop = window.scrollY;
       const windowHeight = window.innerHeight;
       const docHeight = document.documentElement.scrollHeight;
 
       if (scrollTop + windowHeight >= docHeight - 1000) {
-        loadMoreImages();
+        fetchImages(page + 1);
       }
     };
 
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [visibleKeys, allKeys]);
+  }, [visibleKeys, page, total]);
 
-  const loadMoreImages = () => {
-    const nextPage = page + 1;
-    const nextKeys = allKeys.slice(0, nextPage * perPage);
-    if (nextKeys.length > visibleKeys.length) {
-      setVisibleKeys(nextKeys);
-      setPage(nextPage);
-    }
-  };
 
   // Floating "meow" effect
   const handleCatClick = (e) => {
@@ -79,7 +87,7 @@ export default function CatGallery() {
     setTimeout(() => setMeows((prev) => prev.filter((m) => m.id !== id)), 1700);
   };
 
-  // Handle image upload
+  // Upload image
   const handleUpload = async () => {
     if (!file) return;
     setUploading(true);
@@ -98,13 +106,9 @@ export default function CatGallery() {
       setFile(null);
       setUploadSuccess(true);
 
-      const refresh = await fetch("/.netlify/functions/list-images");
-      const data = await refresh.json();
-      const sorted = Array.isArray(data)
-        ? data.sort((a, b) => parseInt(b.key.split("-")[0]) - parseInt(a.key.split("-")[0]))
-        : [];
-      setAllKeys(sorted);
-      setVisibleKeys(sorted.slice(0, perPage));
+      // Refresh first page
+      fetchImages(1);
+
       setTimeout(() => setUploadSuccess(false), 1000);
     } catch (err) {
       console.error("Upload error:", err);
@@ -113,7 +117,7 @@ export default function CatGallery() {
     }
   };
 
-  // Handle image delete
+  // Delete image
   const handleDelete = async (key) => {
     try {
       const res = await fetch(`/.netlify/functions/delete-image?key=${encodeURIComponent(key)}`, {
@@ -121,16 +125,8 @@ export default function CatGallery() {
       });
       if (!res.ok) throw new Error("Failed to delete");
 
-      // Refresh all keys and reset visible keys
-      const refresh = await fetch("/.netlify/functions/list-images");
-      const data = await refresh.json();
-      const sorted = Array.isArray(data)
-        ? data.sort((a, b) => parseInt(b.key.split("-")[0]) - parseInt(a.key.split("-")[0]))
-        : [];
-      setAllKeys(sorted);
-      setVisibleKeys(sorted.slice(0, perPage));
-      setPage(1);
-
+      // Refresh first page
+      fetchImages(1);
       setDeleteKey(null);
     } catch (err) {
       console.error("Delete error:", err);
@@ -138,7 +134,6 @@ export default function CatGallery() {
   };
 
   return (
-
     <div className={styles.page}>
       {uploadMode && (
         <div className={styles.uploadContainer}>
@@ -159,9 +154,7 @@ export default function CatGallery() {
           >
             {uploading ? "Uploading..." : "Upload"}
           </button>
-          {uploadSuccess && (
-            <span className={styles.successMessage}>Upload successful.</span>
-          )}
+          {uploadSuccess && <span className={styles.successMessage}>Upload successful.</span>}
         </div>
       )}
 
@@ -175,7 +168,6 @@ export default function CatGallery() {
       >
         🐱
       </button>
-
 
       <img
         src="/images/cat.png"
@@ -193,30 +185,23 @@ export default function CatGallery() {
         }}
       />
 
-      <div
-        className={`${visibleKeys.length > 0 ? styles.gridVisible : ""
-          }`}
-      >
+      <div className={`${visibleKeys.length > 0 ? styles.gridVisible : ""}`}>
         <div className={styles.grid}>
           {visibleKeys.map(({ key, value }) => (
             <div key={key} className={styles.catContainer}>
               <img
-                src={value? `data:image/jpeg;base64,${value}` : null}
+                src={value ? `data:image/jpeg;base64,${value}` : null}
                 alt={value}
                 className={styles.catPhoto}
                 onClick={handleCatClick}
               />
               {uploadMode && (
-                <button
-                  className={styles.deleteButton}
-                  onClick={() => setDeleteKey(key)}
-                >
+                <button className={styles.deleteButton} onClick={() => setDeleteKey(key)}>
                   ×
                 </button>
               )}
             </div>
           ))}
-
         </div>
       </div>
 
@@ -227,11 +212,7 @@ export default function CatGallery() {
       )}
 
       {meows.map(({ id, top, left }) => (
-        <div
-          key={id}
-          className={styles.floatingMeow}
-          style={{ top: `${top}px`, left: `${left}px` }}
-        >
+        <div key={id} className={styles.floatingMeow} style={{ top: `${top}px`, left: `${left}px` }}>
           Meow 🐱
         </div>
       ))}
@@ -244,10 +225,7 @@ export default function CatGallery() {
               <button className={styles.modalCancel} onClick={() => setDeleteKey(null)}>
                 Cancel
               </button>
-              <button
-                className={styles.modalConfirm}
-                onClick={() => handleDelete(deleteKey)}
-              >
+              <button className={styles.modalConfirm} onClick={() => handleDelete(deleteKey)}>
                 Delete
               </button>
             </div>
