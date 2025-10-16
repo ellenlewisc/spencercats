@@ -18,12 +18,17 @@ export default function CatGallery() {
 
   const loadingRef = useRef(false);
 
-  const fetchImages = async (pageToFetch = 1) => {
-    if (loadingRef.current || !hasMore) return;
+  const fetchImages = async (pageToFetch = 1, force = false) => {
+    console.log("RE-FETCHING", pageToFetch);
+    if (!force && (loadingRef.current || !hasMore)) {
+      console.log("SKIPPING FETCH");
+      return;
+    }
     loadingRef.current = true;
     setLoading(true);
 
     try {
+      console.log("IN FETCH");
       const res = await fetch(`/.netlify/functions/list-images?page=${pageToFetch}&limit=${perPage}`);
       const { data } = await res.json();
 
@@ -48,8 +53,6 @@ export default function CatGallery() {
       loadingRef.current = false;
     }
   };
-
-
 
   // Initial fetch
   useEffect(() => {
@@ -104,11 +107,8 @@ export default function CatGallery() {
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
-      setUploadSuccess(true);
-
-      // Refresh first page
-      fetchImages(1);
-
+      loadingRef.current = false;
+      fetchImages(1, true);
       setTimeout(() => setUploadSuccess(false), 1000);
     } catch (err) {
       console.error("Upload error:", err);
@@ -126,7 +126,7 @@ export default function CatGallery() {
       if (!res.ok) throw new Error("Failed to delete");
 
       // Refresh first page
-      fetchImages(1);
+      fetchImages(1, true);
       setDeleteKey(null);
     } catch (err) {
       console.error("Delete error:", err);

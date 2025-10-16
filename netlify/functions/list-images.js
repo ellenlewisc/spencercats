@@ -8,30 +8,27 @@ const supabase = createClient(
 export default async function handler(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const offset = (page - 1) * limit;
 
+    // Fetch from your table
     const { data, error } = await supabase
       .from("CatImages")
-      .select("key, storage_path")
+      .select("key")
       .order("uploaded_at", { ascending: false })
-      .range(from, to);
+      .range(offset, offset + limit - 1);
 
     if (error) throw error;
 
-    const images = data
-      .filter(img => img.storage_path) // skip null/undefined paths
-      .map(img => {
-        const { publicUrl } = supabase.storage
-          .from("cat-images")
-          .getPublicUrl(img.storage_path);
-        return { key: img.key, url: publicUrl };
-      });
+    // Construct public URLs
+    const urlPrefix = `${process.env.SUPABASE_URL}/storage/v1/object/public/cat-images`;
+    const withUrls = data.map((item) => ({
+      key: item.key,
+      url: `${urlPrefix}/${item.key}`,
+    }));
 
-
-    return new Response(JSON.stringify({ data: images }), {
+    return new Response(JSON.stringify({ data: withUrls }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
