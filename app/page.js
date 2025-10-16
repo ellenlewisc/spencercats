@@ -5,7 +5,6 @@ import styles from "./page.module.css";
 export default function CatGallery() {
   const [visibleKeys, setVisibleKeys] = useState([]);
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
   const perPage = 20;
   const [hasMore, setHasMore] = useState(true);
   const [meows, setMeows] = useState([]);
@@ -60,6 +59,7 @@ export default function CatGallery() {
   }, []);
 
   // Infinite scroll
+  // Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (loadingRef.current || !hasMore) return;
@@ -73,10 +73,10 @@ export default function CatGallery() {
       }
     };
 
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [visibleKeys, page, total]);
+  }, [page, hasMore]);
+
 
 
   // Floating "meow" effect
