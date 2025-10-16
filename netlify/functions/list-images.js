@@ -12,7 +12,6 @@ export default async function handler(req) {
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const offset = (page - 1) * limit;
 
-    // Fetch from your table
     const { data, error } = await supabase
       .from("CatImages")
       .select("key")
@@ -20,8 +19,7 @@ export default async function handler(req) {
       .range(offset, offset + limit - 1);
 
     if (error) throw error;
-
-    // Construct public URLs
+    
     const urlPrefix = `${process.env.SUPABASE_URL}/storage/v1/object/public/cat-images`;
     const withUrls = data.map((item) => ({
       key: item.key,
