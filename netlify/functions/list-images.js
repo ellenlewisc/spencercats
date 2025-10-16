@@ -7,9 +7,10 @@ const supabase = createClient(
 
 export default async function handler() {
   try {
+    // Fetch key and value from Supabase
     const { data, error } = await supabase
       .from("CatImages")
-      .select("key")
+      .select("key, value")
       .order("uploaded_at", { ascending: false });
 
     if (error) {
@@ -17,9 +18,8 @@ export default async function handler() {
       return new Response("Failed to list images", { status: 500 });
     }
 
-    const keys = data.map((row) => row.key);
-
-    return new Response(JSON.stringify(keys), {
+    // Return array of objects like: [{ key: "...", value: "..." }, ...]
+    return new Response(JSON.stringify(data), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

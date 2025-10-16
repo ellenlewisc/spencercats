@@ -26,7 +26,7 @@ export async function handler(event) {
 
   try {
     await catStore.delete(key);
-    await supabase.from("cats").delete().eq("key", key);
+    await supabase.from("CatImages").delete().eq("key", key);
     return { statusCode: 200, body: "Deleted successfully" };
   } catch (err) {
     console.error("Delete failed:", err);

@@ -16,17 +16,18 @@ export default function CatGallery() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadMode, setUploadMode] = useState(false);
 
-  // Fetch all image keys once
   useEffect(() => {
     const fetchImages = async () => {
       setLoading(true);
       try {
         const res = await fetch("/.netlify/functions/list-images");
         const data = await res.json();
-        console.log("Fetched images:", data);
 
         const sorted = Array.isArray(data)
-          ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
+          ? data.sort(
+            (a, b) =>
+              parseInt(b.key.split("-")[0]) - parseInt(a.key.split("-")[0])
+          )
           : [];
 
         setAllKeys(sorted);
@@ -40,6 +41,7 @@ export default function CatGallery() {
 
     fetchImages();
   }, []);
+
 
   // Infinite scroll for loading more images
   useEffect(() => {
@@ -139,7 +141,7 @@ export default function CatGallery() {
   return (
 
     <div className={styles.page}>
-            {uploadMode && (
+      {uploadMode && (
         <div className={styles.uploadContainer}>
           <input
             type="file"
@@ -197,7 +199,7 @@ export default function CatGallery() {
           }`}
       >
         <div className={styles.grid}>
-          {visibleKeys.map((key) => (
+          {visibleKeys.map(({ key, value }) => (
             <div key={key} className={styles.catContainer}>
               <img
                 src={`/.netlify/functions/get-image?key=${encodeURIComponent(key)}`}
@@ -215,6 +217,7 @@ export default function CatGallery() {
               )}
             </div>
           ))}
+
         </div>
       </div>
 
