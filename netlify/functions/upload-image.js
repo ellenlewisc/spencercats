@@ -1,4 +1,3 @@
-import { getStore } from "@netlify/blobs";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -8,6 +7,8 @@ const supabase = createClient(
 
 export default async function handler(req) {
   try {
+    if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+
     const formData = await req.formData();
     const fileUpload = formData.get("fileUpload");
 
@@ -15,41 +16,28 @@ export default async function handler(req) {
       console.error("upload-image error: No file uploaded");
       return new Response("No file uploaded", { status: 400 });
     }
+    const fileName = `${Date.now()}-${file.name}`;
 
-    console.info("Incoming file:", fileUpload.name);
-    console.info("Size (bytes):", fileUpload.size);
-    console.info("Type:", fileUpload.type);
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("cat-images")
+      .upload(fileName, file);
 
-    const catStore = getStore({ name: "Cats", consistency: "strong" });
+    if (uploadError) throw uploadError;
 
-    // Generate unique key
-    const key = `${Date.now()}-${fileUpload.name}`;
-
-    // Save to Netlify Blobs
-    await catStore.set(key, fileUpload);
-    console.info("Upload successful:", key);
-
-    // 🔹 Convert file to Base64 string for Supabase
-    const arrayBuffer = await fileUpload.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64Value = buffer.toString("base64");
 
     // 🔹 Store both key and base64 value in Supabase
     const { error } = await supabase
       .from("CatImages")
-      .insert([{ key, value: base64Value }]);
+      .insert([{ key: fileName, storage_path: uploadData.path }]);
 
     if (error) {
       console.error("Supabase insert error:", error);
       return new Response("Failed to save metadata", { status: 500 });
     }
 
-    console.info("Supabase insert successful:", key);
 
-    return new Response(JSON.stringify({ key }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
     console.error("upload-image error:", err);
     return new Response("Internal Server Error", { status: 500 });

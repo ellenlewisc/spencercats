@@ -15,15 +15,23 @@ export default async function handler(req) {
 
     const { data, error } = await supabase
       .from("CatImages")
-      .select("key, value") 
+      .select("key, storage_path")
+      .order("uploaded_at", { ascending: false })
       .range(from, to);
 
-    if (error) {
-      console.error("Supabase list error:", error);
-      return new Response("Failed to list images", { status: 500 });
-    }
+    if (error) throw error;
 
-    return new Response(JSON.stringify({ data }), {
+    const images = data
+      .filter(img => img.storage_path) // skip null/undefined paths
+      .map(img => {
+        const { publicUrl } = supabase.storage
+          .from("cat-images")
+          .getPublicUrl(img.storage_path);
+        return { key: img.key, url: publicUrl };
+      });
+
+
+    return new Response(JSON.stringify({ data: images }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

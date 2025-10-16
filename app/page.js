@@ -187,11 +187,11 @@ export default function CatGallery() {
 
       <div className={`${visibleKeys.length > 0 ? styles.gridVisible : ""}`}>
         <div className={styles.grid}>
-          {visibleKeys.map(({ key, value }) => (
+          {visibleKeys.map(({ key, url }) => (
             <div key={key} className={styles.catContainer}>
               <img
-                src={value ? `data:image/jpeg;base64,${value}` : null}
-                alt={value}
+                src={url}
+                alt="cat"
                 className={styles.catPhoto}
                 onClick={handleCatClick}
               />
@@ -202,6 +202,7 @@ export default function CatGallery() {
               )}
             </div>
           ))}
+
         </div>
       </div>
 
