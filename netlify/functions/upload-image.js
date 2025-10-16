@@ -19,20 +19,17 @@ export default async function handler(req) {
       return new Response("No file uploaded", { status: 400 });
     }
 
-    // Generate a unique filename
     const fileName = `${Date.now()}-${fileUpload.name}`;
 
-    // Upload to Supabase Storage (using the "cat-images" bucket)
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("cat-images")
       .upload(fileName, fileUpload, {
         cacheControl: "3600",
-        upsert: false, // Prevent overwriting existing files
+        upsert: false, 
       });
 
     if (uploadError) throw uploadError;
 
-    // Store file metadata in Supabase table
     const { error: dbError } = await supabase
       .from("CatImages")
       .insert([

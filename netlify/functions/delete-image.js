@@ -16,7 +16,6 @@ export async function handler(event) {
   }
 
   try {
-    // 1️⃣ Get the image record to know its storage path
     const { data: imageData, error: fetchError } = await supabase
       .from("CatImages")
       .select("storage_path")
@@ -29,7 +28,6 @@ export async function handler(event) {
 
     const storagePath = imageData.storage_path;
 
-    // 2️⃣ Delete from Supabase Storage
     const { error: storageError } = await supabase.storage
       .from("cat-images") // your bucket name
       .remove([storagePath]);
@@ -39,7 +37,6 @@ export async function handler(event) {
       return { statusCode: 500, body: "Failed to delete from storage" };
     }
 
-    // 3️⃣ Delete from database
     const { error: dbError } = await supabase
       .from("CatImages")
       .delete()

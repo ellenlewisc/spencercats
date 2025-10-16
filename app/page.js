@@ -58,7 +58,7 @@ export default function CatGallery() {
     fetchImages(1);
   }, []);
 
-  // Infinite scroll
+
   // Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
