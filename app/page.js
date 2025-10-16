@@ -98,11 +98,10 @@ export default function CatGallery() {
       setFile(null);
       setUploadSuccess(true);
 
-      // Refresh all keys and reset visible keys
       const refresh = await fetch("/.netlify/functions/list-images");
       const data = await refresh.json();
       const sorted = Array.isArray(data)
-        ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
+        ? data.sort((a, b) => parseInt(b.key.split("-")[0]) - parseInt(a.key.split("-")[0]))
         : [];
       setAllKeys(sorted);
       setVisibleKeys(sorted.slice(0, perPage));
@@ -126,7 +125,7 @@ export default function CatGallery() {
       const refresh = await fetch("/.netlify/functions/list-images");
       const data = await refresh.json();
       const sorted = Array.isArray(data)
-        ? data.sort((a, b) => parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]))
+        ? data.sort((a, b) => parseInt(b.key.split("-")[0]) - parseInt(a.key.split("-")[0]))
         : [];
       setAllKeys(sorted);
       setVisibleKeys(sorted.slice(0, perPage));
@@ -202,8 +201,8 @@ export default function CatGallery() {
           {visibleKeys.map(({ key, value }) => (
             <div key={key} className={styles.catContainer}>
               <img
-                src={`/.netlify/functions/get-image?key=${encodeURIComponent(key)}`}
-                alt={key}
+                src={value? `data:image/jpeg;base64,${value}` : null}
+                alt={value}
                 className={styles.catPhoto}
                 onClick={handleCatClick}
               />
