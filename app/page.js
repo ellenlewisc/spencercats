@@ -14,6 +14,7 @@ export default function CatGallery() {
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadMode, setUploadMode] = useState(false);
+  const [selectedCat, setSelectedCat] = useState(null);
 
   const loadingRef = useRef(false);
 
@@ -79,8 +80,8 @@ export default function CatGallery() {
 
 
 
-  // Floating "meow" effect
-  const handleCatClick = (e) => {
+  const handleCatClick = (cat, e) => {
+    // 1️⃣ Floating meow effect
     const rect = e.target.getBoundingClientRect();
     const top = rect.top + window.scrollY + rect.height / 2;
     const left = rect.left + window.scrollX + rect.width / 2;
@@ -88,7 +89,11 @@ export default function CatGallery() {
 
     setMeows((prev) => [...prev, { id, top, left }]);
     setTimeout(() => setMeows((prev) => prev.filter((m) => m.id !== id)), 1700);
+
+    // 2️⃣ Open modal
+    setSelectedCat(cat);
   };
+
 
   // Upload image
   const handleUpload = async () => {
@@ -135,7 +140,7 @@ export default function CatGallery() {
 
   return (
     <div className={styles.page}>
-      {uploadMode && (
+      {uploadMode && !selectedCat && (
         <div className={styles.uploadContainer}>
           <input
             type="file"
@@ -157,6 +162,7 @@ export default function CatGallery() {
           {uploadSuccess && <span className={styles.successMessage}>Upload successful.</span>}
         </div>
       )}
+
 
       <h1 className={styles.title}>SPENCIE AND CATS</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
@@ -187,24 +193,39 @@ export default function CatGallery() {
 
       <div className={`${visibleKeys.length > 0 ? styles.gridVisible : ""}`}>
         <div className={styles.grid}>
-          {visibleKeys.map(({ key, url }) => (
+          {visibleKeys.map(({ key, url, caption }) => (
             <div key={key} className={styles.catContainer}>
               <img
                 src={url}
                 alt="cat"
                 className={styles.catPhoto}
-                onClick={handleCatClick}
+                onClick={(e) => handleCatClick({ key, url, caption }, e)}
               />
-              {uploadMode && (
-                <button className={styles.deleteButton} onClick={() => setDeleteKey(key)}>
-                  ×
-                </button>
-              )}
             </div>
           ))}
 
+
         </div>
       </div>
+
+      {selectedCat && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedCat(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <img src={selectedCat.url} alt="cat" className={styles.modalImage} />
+            <p className={styles.modalCaption}>{selectedCat.caption || ""}</p>
+
+            {uploadMode && (
+              <button
+                className={styles.modalDeleteButton}
+                onClick={() => setDeleteKey(selectedCat.key)}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
 
       {loading && (
         <div className={styles.spinnerContainer}>
