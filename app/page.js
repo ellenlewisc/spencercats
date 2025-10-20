@@ -15,25 +15,24 @@ export default function CatGallery() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadMode, setUploadMode] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
-
+  const [fetchError, setFetchError] = useState(false);
   const loadingRef = useRef(false);
 
   const fetchImages = async (pageToFetch = 1, force = false) => {
-    console.log("RE-FETCHING", pageToFetch);
-    if (!force && (loadingRef.current || !hasMore)) {
-      console.log("SKIPPING FETCH");
-      return;
-    }
+    if (!force && (loadingRef.current || !hasMore)) return;
     loadingRef.current = true;
     setLoading(true);
+    setFetchError(false); // reset on new attempt
 
     try {
-      console.log("IN FETCH");
-      const res = await fetch(`/.netlify/functions/list-images?page=${pageToFetch}&limit=${perPage}`);
+      const res = await fetch(`/api/list?page=${pageToFetch}&limit=${perPage}`);
+      if (!res.ok) throw new Error("Failed to fetch images");
+
       const { data } = await res.json();
 
       if (!data || data.length === 0) {
         setHasMore(false);
+        if (pageToFetch === 1) setVisibleKeys([]);
         return;
       }
 
@@ -44,10 +43,12 @@ export default function CatGallery() {
       }
 
       if (data.length < perPage) setHasMore(false);
-
       setPage(pageToFetch);
     } catch (err) {
       console.error("Failed to fetch images:", err);
+      setHasMore(false); // stop infinite scroll
+      if (pageToFetch === 1) setVisibleKeys([]);
+      setFetchError(true); // show error message
     } finally {
       setLoading(false);
       loadingRef.current = false;
@@ -58,7 +59,6 @@ export default function CatGallery() {
   useEffect(() => {
     fetchImages(1);
   }, []);
-
 
   // Infinite scroll
   useEffect(() => {
@@ -78,10 +78,8 @@ export default function CatGallery() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [page, hasMore]);
 
-
-
+  // Floating “meow” + open modal
   const handleCatClick = (cat, e) => {
-    // 1️⃣ Floating meow effect
     const rect = e.target.getBoundingClientRect();
     const top = rect.top + window.scrollY + rect.height / 2;
     const left = rect.left + window.scrollX + rect.width / 2;
@@ -90,10 +88,8 @@ export default function CatGallery() {
     setMeows((prev) => [...prev, { id, top, left }]);
     setTimeout(() => setMeows((prev) => prev.filter((m) => m.id !== id)), 1700);
 
-    // 2️⃣ Open modal
     setSelectedCat(cat);
   };
-
 
   // Upload image
   const handleUpload = async () => {
@@ -105,15 +101,15 @@ export default function CatGallery() {
     formData.append("fileUpload", file);
 
     try {
-      const res = await fetch("/.netlify/functions/upload-image", {
+      const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
-      loadingRef.current = false;
       fetchImages(1, true);
+      setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 1000);
     } catch (err) {
       console.error("Upload error:", err);
@@ -125,14 +121,14 @@ export default function CatGallery() {
   // Delete image
   const handleDelete = async (key) => {
     try {
-      const res = await fetch(`/.netlify/functions/delete-image?key=${encodeURIComponent(key)}`, {
+      const res = await fetch(`/api/delete/${encodeURIComponent(key)}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete");
 
-      // Refresh first page
       fetchImages(1, true);
       setDeleteKey(null);
+      setSelectedCat(null);
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -140,6 +136,7 @@ export default function CatGallery() {
 
   return (
     <div className={styles.page}>
+      {/* Upload Section */}
       {uploadMode && !selectedCat && (
         <div className={styles.uploadContainer}>
           <input
@@ -159,10 +156,11 @@ export default function CatGallery() {
           >
             {uploading ? "Uploading..." : "Upload"}
           </button>
-          {uploadSuccess && <span className={styles.successMessage}>Upload successful.</span>}
+          {uploadSuccess && (
+            <span className={styles.successMessage}>Upload successful.</span>
+          )}
         </div>
       )}
-
 
       <h1 className={styles.title}>SPENCIE AND CATS</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
@@ -175,10 +173,11 @@ export default function CatGallery() {
         🐱
       </button>
 
+      {/* Cute cat image button */}
       <img
         src="/images/cat.png"
         alt="CAT"
-        onClick={handleCatClick}
+        onClick={(e) => handleCatClick({ url: "/images/cat.png" }, e)}
         style={{
           width: "300px",
           height: "auto",
@@ -191,26 +190,37 @@ export default function CatGallery() {
         }}
       />
 
+      {/* Cat Grid */}
       <div className={`${visibleKeys.length > 0 ? styles.gridVisible : ""}`}>
-        <div className={styles.grid}>
-          {visibleKeys.map(({ key, url, caption }) => (
-            <div key={key} className={styles.catContainer}>
-              <img
-                src={url}
-                alt="cat"
-                className={styles.catPhoto}
-                onClick={(e) => handleCatClick({ key, url, caption }, e)}
-              />
-            </div>
-          ))}
-
-
-        </div>
+        {fetchError && visibleKeys.length === 0 ? (
+          <p className={styles.errorMessage}>No photos found or failed to load.</p>
+        ) : (
+          <div className={styles.grid}>
+            {visibleKeys.map(({ key, url, caption }) => (
+              <div key={key} className={styles.catContainer}>
+                <img
+                  src={url}
+                  alt="cat"
+                  className={styles.catPhoto}
+                  onClick={(e) => handleCatClick({ key, url, caption }, e)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
+
+      {/* Modal View */}
       {selectedCat && (
-        <div className={styles.modalOverlay} onClick={() => setSelectedCat(null)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setSelectedCat(null)}
+        >
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
             <img src={selectedCat.url} alt="cat" className={styles.modalImage} />
             <p className={styles.modalCaption}>{selectedCat.caption || ""}</p>
 
@@ -226,28 +236,40 @@ export default function CatGallery() {
         </div>
       )}
 
-
+      {/* Loading Spinner */}
       {loading && (
         <div className={styles.spinnerContainer}>
           <div className={styles.spinner}></div>
         </div>
       )}
 
+      {/* Floating Meows */}
       {meows.map(({ id, top, left }) => (
-        <div key={id} className={styles.floatingMeow} style={{ top: `${top}px`, left: `${left}px` }}>
+        <div
+          key={id}
+          className={styles.floatingMeow}
+          style={{ top: `${top}px`, left: `${left}px` }}
+        >
           Meow 🐱
         </div>
       ))}
 
+      {/* Delete Confirmation Modal */}
       {deleteKey && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <p>Are you sure you want to delete this cat photo?</p>
             <div className={styles.modalButtons}>
-              <button className={styles.modalCancel} onClick={() => setDeleteKey(null)}>
+              <button
+                className={styles.modalCancel}
+                onClick={() => setDeleteKey(null)}
+              >
                 Cancel
               </button>
-              <button className={styles.modalConfirm} onClick={() => handleDelete(deleteKey)}>
+              <button
+                className={styles.modalConfirm}
+                onClick={() => handleDelete(deleteKey)}
+              >
                 Delete
               </button>
             </div>
