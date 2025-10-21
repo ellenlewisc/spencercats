@@ -1,5 +1,16 @@
 import "./globals.css";
+import { Quicksand, Alfa_Slab_One } from "next/font/google";
 
+const quicksand = Quicksand({
+  subsets: ["latin"],
+  variable: "--font-quicksand",
+});
+
+const alfaSlab = Alfa_Slab_One({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-alfa-slab",
+});
 
 export const metadata = {
   title: "Spencer and Cats",
@@ -8,19 +19,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" ></link>
-        <link rel="preconnect" href="https://fonts.googleapis.com"></link>
-        <link rel="preconnect" href="https://fonts.gstatic.com"></link>
-        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet"></link>
-        <link rel="preconnect" href="https://fonts.googleapis.com"></link>
-        <link rel="preconnect" href="https://fonts.gstatic.com"></link>
-        <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Quicksand:wght@300..700&display=swap" rel="stylesheet"></link>
-      </head>
-      <body>
-        {children}
-      </body>
+    <html lang="en" className={`${quicksand.variable} ${alfaSlab.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }
