@@ -1,28 +1,35 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./page.module.css";
 import { TextField } from "@mui/material";
+import Image from "next/image";
 
 export default function CatGallery() {
   const [visibleKeys, setVisibleKeys] = useState([]);
-  const [page, setPage] = useState(1);
-  const perPage = 20;
+  const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [meows, setMeows] = useState([]);
   const [file, setFile] = useState(null);
   const [deleteKey, setDeleteKey] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadMode, setUploadMode] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [fetchError, setFetchError] = useState(false);
-  const loadingRef = useRef(false);
   const [caption, setCaption] = useState("");
 
+  const perPage = 20;
+  const pageRef = useRef(1);
+  const loadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
 
-  const fetchImages = async (pageToFetch = 1, force = false) => {
-    if (!force && (loadingRef.current || !hasMore)) return;
+  // Keep refs in sync
+  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+
+  const fetchImages = useCallback(async (pageToFetch = 1, force = false) => {
+    if (!force && loadingRef.current) return;
+    if (!force && !hasMoreRef.current) return;
+
     loadingRef.current = true;
     setLoading(true);
     setFetchError(false);
@@ -30,7 +37,6 @@ export default function CatGallery() {
     try {
       const res = await fetch(`/api/list?page=${pageToFetch}&limit=${perPage}`);
       if (!res.ok) throw new Error("Failed to fetch images");
-
       const { data } = await res.json();
 
       if (!data || data.length === 0) {
@@ -46,7 +52,7 @@ export default function CatGallery() {
       }
 
       if (data.length < perPage) setHasMore(false);
-      setPage(pageToFetch);
+      pageRef.current = pageToFetch;
     } catch (err) {
       console.error("Failed to fetch images:", err);
       setHasMore(false);
@@ -56,30 +62,27 @@ export default function CatGallery() {
       setLoading(false);
       loadingRef.current = false;
     }
-  };
+  }, []);
 
   // Initial fetch
-  useEffect(() => {
-    fetchImages(1);
-  }, []);
+  useEffect(() => { fetchImages(1); }, [fetchImages]);
 
   // Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
-      if (loadingRef.current || !hasMore) return;
-
+      if (loadingRef.current || !hasMoreRef.current) return;
       const scrollTop = window.scrollY;
       const windowHeight = window.innerHeight;
       const docHeight = document.documentElement.scrollHeight;
 
       if (scrollTop + windowHeight >= docHeight - 1000) {
-        fetchImages(page + 1);
+        fetchImages(pageRef.current + 1);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [page, hasMore]);
+  }, [fetchImages]);
 
   // Floating “meow” + open modal
   const handleCatClick = (cat, e) => {
@@ -102,7 +105,7 @@ export default function CatGallery() {
 
     const formData = new FormData();
     formData.append("fileUpload", file);
-    formData.append("caption", caption); // ← add caption
+    formData.append("caption", caption);
 
     try {
       const res = await fetch("/api/upload", {
@@ -112,7 +115,7 @@ export default function CatGallery() {
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
-      setCaption(""); // clear caption after upload
+      setCaption("");
       fetchImages(1, true);
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 1000);
@@ -163,30 +166,17 @@ export default function CatGallery() {
             onChange={(e) => setCaption(e.target.value)}
             sx={{
               mt: 1,
-              "& label": {
-                color: "white",
-              },
-              "& label.Mui-focused": {
-                color: "white",
-              },
+              "& label": { color: "white" },
+              "& label.Mui-focused": { color: "white" },
               "& .MuiOutlinedInput-root": {
                 borderRadius: "12px",
-                "& fieldset": {
-                  borderColor: "#ff9800",
-                },
-                "&:hover fieldset": {
-                  borderColor: "#ffb74d",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#ff9800",
-                },
-                "& input": {
-                  color: 'white',
-                },
+                "& fieldset": { borderColor: "#ff9800" },
+                "&:hover fieldset": { borderColor: "#ffb74d" },
+                "&.Mui-focused fieldset": { borderColor: "#ff9800" },
+                "& input": { color: "white" },
               },
             }}
           />
-
           <button
             className={styles.uploadButton}
             onClick={handleUpload}
@@ -200,9 +190,38 @@ export default function CatGallery() {
         </div>
       )}
 
-
       <h1 className={styles.title}>SPENCIE AND CATS</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
+
+      <div
+  style={{
+    position: "relative",
+    width: 300,
+    height: 300,
+    marginLeft: 50,
+    padding: 40,
+    marginBottom: 40,
+    overflow: "hidden",
+    cursor: "pointer",
+  }}
+>
+  <Image
+    src="/images/cat.png"
+    alt="CAT"
+    fill
+    style={{ objectFit: "contain", cursor: "pointer" }}
+    onClick={(e) => {
+      // Optional: trigger floating meow or any other effect
+      const rect = e.target.getBoundingClientRect();
+      const top = rect.top + window.scrollY + rect.height / 2;
+      const left = rect.left + window.scrollX + rect.width / 2;
+      const id = Math.random().toString(36).slice(2, 11);
+      setMeows((prev) => [...prev, { id, top, left }]);
+      setTimeout(() => setMeows((prev) => prev.filter((m) => m.id !== id)), 1700);
+    }}
+  />
+</div>
+
 
       <button
         className={styles.catToggleButton}
@@ -212,35 +231,33 @@ export default function CatGallery() {
         🐱
       </button>
 
-      {/* Cute cat image button */}
-      <img
-        src="/images/cat.png"
-        alt="CAT"
-        style={{
-          width: "300px",
-          height: "auto",
-          display: "block",
-          cursor: "pointer",
-          objectFit: "contain",
-          padding: "40px",
-          borderRadius: "20px",
-          marginLeft: "50px",
-        }}
-      />
-
       {/* Cat Grid */}
       <div className={`${visibleKeys.length > 0 ? styles.gridVisible : ""}`}>
         {fetchError && visibleKeys.length === 0 ? (
-          <p className={styles.errorMessage}>No photos found or failed to load.</p>
+          <p className={styles.errorMessage}>
+            No photos found or failed to load.
+          </p>
         ) : (
           <div className={styles.grid}>
             {visibleKeys.map(({ key, url, caption }) => (
-              <div key={key} className={styles.catContainer}>
-                <img
+              <div
+                key={key}
+                className={styles.catContainer}
+                onClick={(e) =>
+                  handleCatClick({ key, url, caption }, e)
+                }
+              >
+                <Image
                   src={url}
                   alt="cat"
-                  className={styles.catPhoto}
-                  onClick={(e) => handleCatClick({ key, url, caption }, e)}
+                  width={400}
+                  height={400}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    objectFit: "contain",
+                    borderRadius: "12px",
+                  }}
                 />
               </div>
             ))}
@@ -248,20 +265,22 @@ export default function CatGallery() {
         )}
       </div>
 
-
       {/* Modal View */}
       {selectedCat && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => setSelectedCat(null)}
-        >
-          <div
-            className={styles.modalContent}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img src={selectedCat.url} alt="cat" className={styles.modalImage} />
-            <p className={styles.modalCaption}>{selectedCat.caption || ""}</p>
-
+        <div className={styles.modalOverlay} onClick={() => setSelectedCat(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={{ maxWidth: "800px", borderRadius: "20px", overflow: "hidden", margin: "0 auto" }}>
+              <Image
+                src={selectedCat.url}
+                alt="cat"
+                width={800}
+                height={800}
+                style={{ width: "60vh", height: "auto", objectFit: "contain", borderRadius: "20px" }}
+              />
+            </div>
+            {selectedCat.caption?.trim() && (
+              <p className={styles.modalCaption}>{selectedCat.caption}</p>
+            )}
             {uploadMode && (
               <button
                 className={styles.modalDeleteButton}
@@ -283,11 +302,7 @@ export default function CatGallery() {
 
       {/* Floating Meows */}
       {meows.map(({ id, top, left }) => (
-        <div
-          key={id}
-          className={styles.floatingMeow}
-          style={{ top: `${top}px`, left: `${left}px` }}
-        >
+        <div key={id} className={styles.floatingMeow} style={{ top: `${top}px`, left: `${left}px` }}>
           Meow 🐱
         </div>
       ))}
@@ -298,16 +313,10 @@ export default function CatGallery() {
           <div className={styles.modal}>
             <p>Are you sure you want to delete this cat photo?</p>
             <div className={styles.modalButtons}>
-              <button
-                className={styles.modalCancel}
-                onClick={() => setDeleteKey(null)}
-              >
+              <button className={styles.modalCancel} onClick={() => setDeleteKey(null)}>
                 Cancel
               </button>
-              <button
-                className={styles.modalConfirm}
-                onClick={() => handleDelete(deleteKey)}
-              >
+              <button className={styles.modalConfirm} onClick={() => handleDelete(deleteKey)}>
                 Delete
               </button>
             </div>

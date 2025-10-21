@@ -15,23 +15,22 @@
   position: relative;
   max-width: 95%;
   max-height: 95%;
-  border-radius: 20px;
   text-align: center;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.modalImage {
-  max-width: 100%;
-  max-height: 80vh;
-  border-radius: 10px;
-}
 
 .modalCaption {
-  background-color: black;
-  color: #ff9800;
+  background-color: #ffcc80;
+  color: black;
+  border-radius: 10px;
   margin-top: 10px;
   font-size: 1.2rem;
   margin-bottom: 10px;
-  padding:10px;
+  padding: 10px;
 }
 
 .modalDeleteButton {
@@ -39,7 +38,7 @@
   background-color: black;
   margin-bottom: 10px;
   color: white;
-  border: 1px solid  #ff9b4a;
+  border: 1px solid #ff9b4a;
   border-radius: 10px;
   font-size: 1rem;
   cursor: pointer;
@@ -155,11 +154,12 @@
 }
 
 /* --- Cat Grid --- */
+/* Cat grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 28px;
-  max-width: 900px;
+  max-width: 1200px;
   padding: 0 20px;
 }
 
@@ -168,22 +168,18 @@
   overflow: hidden;
   border-radius: 12px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 0 10px rgba(255, 152, 0, 0.1);
-  background: #ffcc80;
-  padding: 10px;
+  box-shadow: 0 0 20px rgba(255, 152, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:20px;
 }
+
 
 .catContainer:hover {
   transform: translateY(-6px);
-  box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
-}
-
-.catPhoto {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 12px;
-  transition: transform 0.3s ease;
+  box-shadow: 0 0 20px rgba(255, 152, 0, 0.4);
 }
 
 .deleteButton {
