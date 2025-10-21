@@ -194,33 +194,33 @@ export default function CatGallery() {
       <p className={styles.subtitle}>meow meow pspspsi</p>
 
       <div
-  style={{
-    position: "relative",
-    width: 300,
-    height: 300,
-    marginLeft: 50,
-    padding: 40,
-    marginBottom: 40,
-    overflow: "hidden",
-    cursor: "pointer",
-  }}
->
-  <Image
-    src="/images/cat.png"
-    alt="CAT"
-    fill
-    style={{ objectFit: "contain", cursor: "pointer" }}
-    onClick={(e) => {
-      // Optional: trigger floating meow or any other effect
-      const rect = e.target.getBoundingClientRect();
-      const top = rect.top + window.scrollY + rect.height / 2;
-      const left = rect.left + window.scrollX + rect.width / 2;
-      const id = Math.random().toString(36).slice(2, 11);
-      setMeows((prev) => [...prev, { id, top, left }]);
-      setTimeout(() => setMeows((prev) => prev.filter((m) => m.id !== id)), 1700);
-    }}
-  />
-</div>
+        style={{
+          position: "relative",
+          width: 300,
+          height: 300,
+          marginLeft: 50,
+          padding: 40,
+          marginBottom: 40,
+          overflow: "hidden",
+          cursor: "pointer",
+        }}
+      >
+        <Image
+          src="/images/cat.png"
+          alt="CAT"
+          fill
+          style={{ objectFit: "contain", cursor: "pointer" }}
+          onClick={(e) => {
+            // Optional: trigger floating meow or any other effect
+            const rect = e.target.getBoundingClientRect();
+            const top = rect.top + window.scrollY + rect.height / 2;
+            const left = rect.left + window.scrollX + rect.width / 2;
+            const id = Math.random().toString(36).slice(2, 11);
+            setMeows((prev) => [...prev, { id, top, left }]);
+            setTimeout(() => setMeows((prev) => prev.filter((m) => m.id !== id)), 1700);
+          }}
+        />
+      </div>
 
 
       <button
@@ -269,6 +269,24 @@ export default function CatGallery() {
       {selectedCat && (
         <div className={styles.modalOverlay} onClick={() => setSelectedCat(null)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedCat(null)}
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: "transparent",
+                border: "none",
+                color: "white",
+                fontSize: "24px",
+                cursor: "pointer",
+              }}
+              title="Close"
+            >
+              ×
+            </button>
+
             <div style={{ maxWidth: "800px", borderRadius: "20px", overflow: "hidden", margin: "0 auto" }}>
               <Image
                 src={selectedCat.url}
@@ -278,9 +296,11 @@ export default function CatGallery() {
                 style={{ width: "60vh", height: "auto", objectFit: "contain", borderRadius: "20px" }}
               />
             </div>
+
             {selectedCat.caption?.trim() && (
               <p className={styles.modalCaption}>{selectedCat.caption}</p>
             )}
+
             {uploadMode && (
               <button
                 className={styles.modalDeleteButton}
@@ -292,6 +312,7 @@ export default function CatGallery() {
           </div>
         </div>
       )}
+
 
       {/* Loading Spinner */}
       {loading && (
