@@ -15,19 +15,20 @@ export async function GET(req) {
 
     const { data, error } = await supabase
       .from("CatImages")
-      .select("key")
+    .select("key, caption")
       .order("uploaded_at", { ascending: false })
       .range(offset, offset + limit - 1);
-
+      
     if (error) throw error;
 
     const urlPrefix = `${process.env.SUPABASE_URL}/storage/v1/object/public/cat-images`;
-    const withUrls = data.map((item) => ({
+    const withData = data.map((item) => ({
       key: item.key,
       url: `${urlPrefix}/${item.key}`,
+      caption: item.caption
     }));
 
-    return Response.json({ data: withUrls }, { status: 200 });
+    return Response.json({ data: withData }, { status: 200 });
   } catch (err) {
     console.error("list-images error:", err);
     return new Response("Internal Server Error", { status: 500 });

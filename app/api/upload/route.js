@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -6,11 +5,11 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
-
 export async function POST(req) {
   try {
     const formData = await req.formData();
     const fileUpload = formData.get("fileUpload");
+    const caption = formData.get("caption") || ""; // ← read caption
 
     if (!fileUpload) {
       console.error("upload-image error: No file uploaded");
@@ -34,6 +33,7 @@ export async function POST(req) {
         {
           key: fileName,
           storage_path: uploadData.path,
+          caption, // ← save caption in the DB
         },
       ]);
 
@@ -42,10 +42,7 @@ export async function POST(req) {
       return new Response("Failed to save metadata", { status: 500 });
     }
 
-    return Response.json(
-      { success: true, path: uploadData.path },
-      { status: 200 }
-    );
+    return Response.json({ success: true, path: uploadData.path }, { status: 200 });
   } catch (err) {
     console.error("upload-image error:", err);
     return new Response("Internal Server Error", { status: 500 });

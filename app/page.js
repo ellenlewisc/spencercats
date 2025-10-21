@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import styles from "./page.module.css";
+import { TextField } from "@mui/material";
 
 export default function CatGallery() {
   const [visibleKeys, setVisibleKeys] = useState([]);
@@ -17,12 +18,14 @@ export default function CatGallery() {
   const [selectedCat, setSelectedCat] = useState(null);
   const [fetchError, setFetchError] = useState(false);
   const loadingRef = useRef(false);
+  const [caption, setCaption] = useState("");
+
 
   const fetchImages = async (pageToFetch = 1, force = false) => {
     if (!force && (loadingRef.current || !hasMore)) return;
     loadingRef.current = true;
     setLoading(true);
-    setFetchError(false); // reset on new attempt
+    setFetchError(false);
 
     try {
       const res = await fetch(`/api/list?page=${pageToFetch}&limit=${perPage}`);
@@ -46,9 +49,9 @@ export default function CatGallery() {
       setPage(pageToFetch);
     } catch (err) {
       console.error("Failed to fetch images:", err);
-      setHasMore(false); // stop infinite scroll
+      setHasMore(false);
       if (pageToFetch === 1) setVisibleKeys([]);
-      setFetchError(true); // show error message
+      setFetchError(true);
     } finally {
       setLoading(false);
       loadingRef.current = false;
@@ -99,6 +102,7 @@ export default function CatGallery() {
 
     const formData = new FormData();
     formData.append("fileUpload", file);
+    formData.append("caption", caption); // ← add caption
 
     try {
       const res = await fetch("/api/upload", {
@@ -108,6 +112,7 @@ export default function CatGallery() {
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
+      setCaption(""); // clear caption after upload
       fetchImages(1, true);
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 1000);
@@ -149,6 +154,39 @@ export default function CatGallery() {
           <label htmlFor="fileUpload" className={styles.uploadLabel}>
             {file ? file.name : "Choose file"}
           </label>
+          <TextField
+            label="Caption"
+            variant="outlined"
+            size="small"
+            fullWidth
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            sx={{
+              mt: 1,
+              "& label": {
+                color: "white",
+              },
+              "& label.Mui-focused": {
+                color: "white",
+              },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                "& fieldset": {
+                  borderColor: "#ff9800",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#ffb74d",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#ff9800",
+                },
+                "& input": {
+                  color: 'white',
+                },
+              },
+            }}
+          />
+
           <button
             className={styles.uploadButton}
             onClick={handleUpload}
@@ -161,6 +199,7 @@ export default function CatGallery() {
           )}
         </div>
       )}
+
 
       <h1 className={styles.title}>SPENCIE AND CATS</h1>
       <p className={styles.subtitle}>meow meow pspspsi</p>
@@ -177,7 +216,6 @@ export default function CatGallery() {
       <img
         src="/images/cat.png"
         alt="CAT"
-        onClick={(e) => handleCatClick({ url: "/images/cat.png" }, e)}
         style={{
           width: "300px",
           height: "auto",
