@@ -3,8 +3,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./page.module.css";
 import { TextField } from "@mui/material";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { supabase } from "./components/supabaseclient";
 
 export default function CatGallery() {
+  const [user, setUser] = useState(null);
+  const router = useRouter();
+
   const [visibleKeys, setVisibleKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -23,8 +28,29 @@ export default function CatGallery() {
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
 
+  useEffect(() => {
+    // Get current user
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+
+    // Listen for auth changes
+    const { data: { subscription } = {} } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Cleanup
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+
   // Keep refs in sync
   useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   const fetchImages = useCallback(async (pageToFetch = 1, force = false) => {
     if (!force && loadingRef.current) return;
@@ -144,6 +170,27 @@ export default function CatGallery() {
 
   return (
     <div className={styles.page}>
+       <div style={{ position: "absolute", top: "20px", right: "20px", display: "flex", gap: "10px", zIndex: 100 }}>
+    {user ? (
+      <>
+        <button className={styles.loginButton} onClick={handleLogout}>
+          Logout
+        </button>
+        <button
+          className={styles.catToggleButton}
+          onClick={() => setUploadMode((prev) => !prev)}
+          title="Toggle upload mode"
+        >
+          🐱
+        </button>
+      </>
+    ) : (
+      <button className={styles.loginButton} onClick={() => router.push("/login")}>
+        Login
+      </button>
+    )}
+  </div>
+
       {/* Upload Section */}
       {uploadMode && !selectedCat && (
         <div className={styles.uploadContainer}>
@@ -198,7 +245,7 @@ export default function CatGallery() {
           position: "relative",
           width: 300,
           height: 300,
-          marginLeft: 50,
+          marginLeft: 70,
           padding: 40,
           marginBottom: 40,
           overflow: "hidden",
@@ -211,7 +258,6 @@ export default function CatGallery() {
           fill
           style={{ objectFit: "contain", cursor: "pointer" }}
           onClick={(e) => {
-            // Optional: trigger floating meow or any other effect
             const rect = e.target.getBoundingClientRect();
             const top = rect.top + window.scrollY + rect.height / 2;
             const left = rect.left + window.scrollX + rect.width / 2;
@@ -221,15 +267,6 @@ export default function CatGallery() {
           }}
         />
       </div>
-
-
-      <button
-        className={styles.catToggleButton}
-        onClick={() => setUploadMode((prev) => !prev)}
-        title="Toggle upload mode"
-      >
-        🐱
-      </button>
 
       {/* Cat Grid */}
       <div className={`${visibleKeys.length > 0 ? styles.gridVisible : ""}`}>
