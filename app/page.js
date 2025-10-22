@@ -170,26 +170,26 @@ export default function CatGallery() {
 
   return (
     <div className={styles.page}>
-       <div style={{ position: "absolute", top: "20px", right: "20px", display: "flex", gap: "10px", zIndex: 100 }}>
-    {user ? (
-      <>
-        <button className={styles.loginButton} onClick={handleLogout}>
-          Logout
-        </button>
-        <button
-          className={styles.catToggleButton}
-          onClick={() => setUploadMode((prev) => !prev)}
-          title="Toggle upload mode"
-        >
-          🐱
-        </button>
-      </>
-    ) : (
-      <button className={styles.loginButton} onClick={() => router.push("/login")}>
-        Login
-      </button>
-    )}
-  </div>
+      <div style={{ position: "absolute", top: "20px", right: "20px", display: "flex", gap: "10px", zIndex: 100 }}>
+        {user ? (
+          <>
+            <button className={styles.loginButton} onClick={handleLogout}>
+              Logout
+            </button>
+            <button
+              className={styles.catToggleButton}
+              onClick={() => setUploadMode((prev) => !prev)}
+              title="Toggle upload mode"
+            >
+              🐱
+            </button>
+          </>
+        ) : (
+          <button className={styles.loginButton} onClick={() => router.push("/login")}>
+            Login
+          </button>
+        )}
+      </div>
 
       {/* Upload Section */}
       {uploadMode && !selectedCat && (
@@ -306,23 +306,14 @@ export default function CatGallery() {
       {selectedCat && (
         <div className={styles.modalOverlay} onClick={() => setSelectedCat(null)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            {/* Close button */}
             <button
+              className={styles.modalCloseButton}
               onClick={() => setSelectedCat(null)}
-              style={{
-                position: "absolute",
-                top: "10px",
-                right: "10px",
-                background: "transparent",
-                border: "none",
-                color: "white",
-                fontSize: "24px",
-                cursor: "pointer",
-              }}
               title="Close"
             >
               ×
             </button>
+
 
             <div style={{ maxWidth: "800px", borderRadius: "20px", overflow: "hidden", margin: "0 auto" }}>
               <Image
