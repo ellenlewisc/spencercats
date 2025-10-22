@@ -37,6 +37,14 @@
   align-items: center;
 }
 
+.modalContent img {
+  max-width: 90vw;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 20px;
+}
 
 .modalCaption {
   background-color: #ffcc80;
@@ -384,7 +392,13 @@
   color: #fff;
 }
 
+
 @media (max-width: 600px) {
+  .modalContent img {
+    max-width: 95vw;
+    max-height: 80vh;
+  }
+
   .modalCloseButton {
     width: 34px;
     height: 34px;

@@ -321,7 +321,7 @@ export default function CatGallery() {
                 alt="cat"
                 width={800}
                 height={800}
-                style={{ width: "60vh", height: "auto", objectFit: "contain", borderRadius: "20px" }}
+                className={styles.modalImage}
               />
             </div>
 
