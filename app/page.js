@@ -23,7 +23,7 @@ export default function CatGallery() {
   const [fetchError, setFetchError] = useState(false);
   const [caption, setCaption] = useState("");
 
-  const perPage = 20;
+  const perPage = 10;
   const pageRef = useRef(1);
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
@@ -289,9 +289,8 @@ export default function CatGallery() {
                   alt="cat"
                   width={400}
                   height={400}
-                  loading="lazy"
-                  placeholder="blur"
-                  blurDataURL="/images/placeholder.png"
+                  loading="eager"
+                  priority
                   style={{
                     width: "100%",
                     height: "auto",
