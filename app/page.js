@@ -23,7 +23,7 @@ export default function CatGallery() {
   const [fetchError, setFetchError] = useState(false);
   const [caption, setCaption] = useState("");
 
-  const perPage = 10;
+  const perPage = 20;
   const pageRef = useRef(1);
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
