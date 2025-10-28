@@ -289,6 +289,9 @@ export default function CatGallery() {
                   alt="cat"
                   width={400}
                   height={400}
+                  loading="lazy"
+                  placeholder="blur"
+                  blurDataURL="/images/placeholder.png"
                   style={{
                     width: "100%",
                     height: "auto",
@@ -375,3 +378,4 @@ export default function CatGallery() {
     </div>
   );
 }
+
