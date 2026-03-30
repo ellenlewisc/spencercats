@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_KEY
 );
 export async function DELETE(req, { params }) {
-  const { id } = params; // id is actually the file key
+  const { id } = await params; // id is actually the file key
 
   if (!id) return new Response("Missing image ID", { status: 400 });
 
