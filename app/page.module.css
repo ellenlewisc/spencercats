@@ -492,7 +492,7 @@
   text-shadow: 0 0 8px rgba(255, 152, 0, 0.8);
   animation: fadeOut 1.7s ease forwards;
   pointer-events: none;
-  z-index: 999;
+  z-index: 1001;
 }
 
 @keyframes fadeOut {
