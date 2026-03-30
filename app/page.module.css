@@ -15,62 +15,189 @@
 
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: modalBgIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalBgIn {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(12px); }
 }
 
 .modalContent {
   position: relative;
-  max-width: 95%;
-  max-height: 95%;
+  max-width: 90%;
+  max-height: 90vh;
   text-align: center;
-  border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  animation: modalPopIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 152, 0, 0.15);
+  border-radius: 20px;
+  padding: 16px;
+  padding-bottom: 20px;
+  box-shadow: 0 12px 60px rgba(0, 0, 0, 0.7), 0 0 80px rgba(255, 152, 0, 0.04);
+  overflow: hidden;
+}
+
+@keyframes modalPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modalImageWrapper {
+  position: relative;
+  max-width: 800px;
+  min-height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .modalContent img {
-  max-width: 90vw;
-  max-height: 80vh;
+  max-width: 85vw;
+  max-height: 70vh;
   width: auto;
   height: auto;
   object-fit: contain;
-  border-radius: 20px;
+  border-radius: 12px;
+  display: block;
 }
 
 .modalCaption {
-  background-color: #ffcc80;
-  color: black;
-  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  margin-top: 14px;
+  font-size: 1.05rem;
+  padding: 0 12px;
+  max-width: 600px;
+  cursor: default;
+  user-select: none;
+}
+
+.modalActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.modalCaptionEditable {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
   margin-top: 10px;
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-  padding: 10px;
+  font-size: 1.05rem;
+  padding: 6px 14px;
+  max-width: 600px;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px dashed transparent;
+  transition: border-color 0.2s, background 0.2s;
+  user-select: none;
+}
+
+.modalCaptionEditable:hover {
+  border-color: rgba(255, 152, 0, 0.3);
+  background: rgba(255, 152, 0, 0.05);
+}
+
+.captionEditRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.captionInput {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.captionInput:focus {
+  border-color: #ff9800;
+}
+
+.captionSaveButton {
+  background: #ff9800;
+  color: #121212;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.captionSaveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.captionCancelButton {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.captionCancelButton:hover {
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .modalDeleteButton {
-  padding: 10px 20px;
-  background-color: black;
-  margin-bottom: 10px;
-  color: white;
-  border: 1px solid #ff9b4a;
-  border-radius: 10px;
-  font-size: 1rem;
+  padding: 8px 20px;
+  background: transparent;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: background 0.2s ease-in-out;
+  transition: all 0.2s ease;
 }
 
 .modalDeleteButton:hover {
-  background-color: white;
-  color: #ff9b4a;
+  background: rgba(229, 57, 53, 0.15);
+  border-color: #e53935;
+  color: #e53935;
 }
 
 
@@ -95,6 +222,8 @@
   text-align: center;
   font-weight: 800;
   letter-spacing: 8px;
+  cursor: default;
+  user-select: none;
 }
 
 .subtitle {
@@ -104,6 +233,8 @@
   margin-bottom: 40px;
   text-align: center;
   opacity: 0.85;
+  cursor: default;
+  user-select: none;
 }
 
 /* --- Cat image hero --- */
@@ -122,54 +253,139 @@
 }
 
 /* --- Upload Section --- */
-.uploadContainer {
+.uploadOverlay {
   position: fixed;
-  top: 35px;
-  right: 50%;
-  transform: translateX(50%);
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 20px 30px;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease;
 }
 
-.uploadLabel {
-  color: white;
-  border: 1px solid #ff9800;
-  padding: 10px 20px;
-  border-radius: 8px;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.uploadPanel {
+  position: relative;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  border-radius: 16px;
+  padding: 32px;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 80px rgba(255, 152, 0, 0.06);
+}
+
+.uploadCloseButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.6rem;
   cursor: pointer;
-  text-align: center;
+  line-height: 1;
+  transition: color 0.2s;
 }
 
-.uploadLabel:hover {
-  background: rgba(255, 152, 0, 0.25);
-  transform: translateY(-2px);
+.uploadCloseButton:hover {
+  color: white;
+}
+
+.uploadTitle {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ff9800;
+  letter-spacing: 1px;
+}
+
+.uploadDropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(255, 152, 0, 0.3);
+  border-radius: 12px;
+  padding: 28px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  min-height: 120px;
+}
+
+.uploadDropZone:hover {
+  border-color: #ff9800;
+  background: rgba(255, 152, 0, 0.05);
+}
+
+.uploadIcon {
+  font-size: 2.2rem;
+  color: rgba(255, 152, 0, 0.5);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.uploadDropText {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.9rem;
+}
+
+.uploadPreview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.uploadPreviewImage {
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.uploadFileName {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  word-break: break-all;
+  text-align: center;
 }
 
 .uploadButton {
   background: #ff9800;
   color: #121212;
-  padding: 10px 24px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-size: 0.95rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .uploadButton:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(255, 152, 0, 0.4);
+  box-shadow: 0 0 20px rgba(255, 152, 0, 0.35);
 }
 
 .uploadButton:disabled {
-  background: #555;
-  color: #aaa;
+  background: #333;
+  color: #666;
   cursor: not-allowed;
+}
+
+.successMessage {
+  color: #66bb6a;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .hiddenInput {
@@ -211,9 +427,36 @@
   object-fit: cover;
 }
 
+.imagePlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 30, 0.8);
+  border-radius: 12px;
+  z-index: 1;
+}
+
+.modalPlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(26, 26, 26, 0.9);
+  border-radius: 16px;
+  z-index: 1;
+}
+
 .catContainer:hover {
   transform: translateY(-6px);
   box-shadow: 0 0 20px rgba(255, 152, 0, 0.4);
+}
+
+.catContainer:active {
+  transform: scale(0.96);
+  transition: transform 0.1s ease;
 }
 
 .deleteButton {
@@ -277,20 +520,7 @@
   }
 }
 
-/* --- Modal --- */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 15, 15, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
+/* --- Delete Confirm Modal --- */
 .modal {
   background: #1f1f1f;
   border: 1px solid rgba(255, 152, 0, 0.3);
@@ -368,42 +598,30 @@
 
 .modalCloseButton {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 152, 0, 0.15);
-  border: 1px solid rgba(255, 152, 0, 0.4);
-  color: #fff;
-  font-size: 1.8rem;
+  top: 24px;
+  right: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.4rem;
   font-weight: bold;
   border-radius: 50%;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
   z-index: 101;
 }
 
 .modalCloseButton:hover {
-  background: rgba(255, 152, 0, 0.35);
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
-}
-
-
-@media (max-width: 600px) {
-  .modalContent img {
-    max-width: 95vw;
-    max-height: 80vh;
-  }
-
-  .modalCloseButton {
-    width: 34px;
-    height: 34px;
-    font-size: 1.5rem;
-  }
 }
 
 
@@ -411,7 +629,6 @@
 @media (max-width: 1200px) {
   .grid {
     grid-template-columns: repeat(3, 1fr);
-    /* 3 per row */
   }
 }
 
@@ -419,7 +636,28 @@
 @media (max-width: 800px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
-    /* 2 per row */
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 3.5rem;
+    margin-top: 120px;
+    letter-spacing: 5px;
+  }
+
+  .modalContent {
+    max-width: 95%;
+    padding: 12px;
+    padding-bottom: 16px;
+    border-radius: 16px;
+  }
+
+  .modalCloseButton {
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
   }
 }
 
@@ -427,16 +665,14 @@
 @media (max-width: 500px) {
   .grid {
     grid-template-columns: 1fr;
-    /* 1 per row */
+    gap: 12px;
+    padding: 0 12px;
   }
-}
 
-/* Fix title and subtitle on smaller screens */
-@media (max-width: 500px) {
   .title {
-    font-size: 2.8rem;
-    margin-top: 100px;
-    letter-spacing: 4px;
+    font-size: 2.4rem;
+    margin-top: 80px;
+    letter-spacing: 3px;
     padding: 0 12px;
     box-sizing: border-box;
     word-break: break-word;
@@ -444,12 +680,92 @@
 
   .subtitle {
     font-size: 1rem;
-    margin-top: 20px;
-    margin-bottom: 30px;
+    margin-top: 16px;
+    margin-bottom: 24px;
     padding: 0 16px;
   }
 
   .page {
     padding-bottom: 60px;
+  }
+
+  .modalContent {
+    max-width: 96%;
+    padding: 10px;
+    padding-bottom: 14px;
+    border-radius: 14px;
+  }
+
+  .modalContent img {
+    max-width: 100%;
+    max-height: 65vh;
+    border-radius: 10px;
+  }
+
+  .modalImageWrapper {
+    border-radius: 10px;
+  }
+
+  .modalCloseButton {
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    font-size: 1.1rem;
+  }
+
+  .modalCaption {
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+
+  .modalDeleteButton {
+    margin-top: 8px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+
+  .modalCaptionEditable {
+    font-size: 0.9rem;
+    padding: 4px 10px;
+  }
+
+  .captionEditRow {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .captionInput {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+
+  .uploadPanel {
+    width: 95%;
+    padding: 20px;
+    gap: 12px;
+  }
+
+  .uploadDropZone {
+    padding: 20px 12px;
+    min-height: 100px;
+  }
+
+  .uploadTitle {
+    font-size: 1.1rem;
+  }
+
+  .loginButton {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .catToggleButton {
+    padding: 6px 12px;
+  }
+
+  .catContainer:hover {
+    transform: none;
   }
 }

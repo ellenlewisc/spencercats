@@ -22,6 +22,10 @@ export default function CatGallery() {
   const [selectedCat, setSelectedCat] = useState(null);
   const [fetchError, setFetchError] = useState(false);
   const [caption, setCaption] = useState("");
+  const [loadedImages, setLoadedImages] = useState(new Set());
+  const [editingCaption, setEditingCaption] = useState(false);
+  const [editCaptionValue, setEditCaptionValue] = useState("");
+  const [savingCaption, setSavingCaption] = useState(false);
 
   const perPage = 20;
   const pageRef = useRef(1);
@@ -168,6 +172,32 @@ export default function CatGallery() {
     }
   };
 
+  // Save caption
+  const handleSaveCaption = async () => {
+    if (!selectedCat) return;
+    setSavingCaption(true);
+    try {
+      const res = await fetch(`/api/caption/${encodeURIComponent(selectedCat.key)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caption: editCaptionValue }),
+      });
+      if (!res.ok) throw new Error("Failed to update caption");
+
+      setSelectedCat((prev) => ({ ...prev, caption: editCaptionValue }));
+      setVisibleKeys((prev) =>
+        prev.map((item) =>
+          item.key === selectedCat.key ? { ...item, caption: editCaptionValue } : item
+        )
+      );
+      setEditingCaption(false);
+    } catch (err) {
+      console.error("Caption update error:", err);
+    } finally {
+      setSavingCaption(false);
+    }
+  };
+
   return (
     <div className={styles.page}>
       <div style={{ position: "absolute", top: "20px", right: "20px", display: "flex", gap: "10px", zIndex: 100 }}>
@@ -193,47 +223,76 @@ export default function CatGallery() {
 
       {/* Upload Section */}
       {uploadMode && !selectedCat && (
-        <div className={styles.uploadContainer}>
-          <input
-            type="file"
-            accept="image/*"
-            id="fileUpload"
-            onChange={(e) => setFile(e.target.files[0])}
-            className={styles.hiddenInput}
-          />
-          <label htmlFor="fileUpload" className={styles.uploadLabel}>
-            {file ? file.name : "Choose file"}
-          </label>
-          <TextField
-            label="Caption"
-            variant="outlined"
-            size="small"
-            fullWidth
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            sx={{
-              mt: 1,
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "12px",
-                "& fieldset": { borderColor: "#ff9800" },
-                "&:hover fieldset": { borderColor: "#ffb74d" },
-                "&.Mui-focused fieldset": { borderColor: "#ff9800" },
-                "& input": { color: "white" },
-              },
-            }}
-          />
-          <button
-            className={styles.uploadButton}
-            onClick={handleUpload}
-            disabled={!file || uploading}
-          >
-            {uploading ? "Uploading..." : "Upload"}
-          </button>
-          {uploadSuccess && (
-            <span className={styles.successMessage}>Upload successful.</span>
-          )}
+        <div className={styles.uploadOverlay} onClick={() => setUploadMode(false)}>
+          <div className={styles.uploadPanel} onClick={(e) => e.stopPropagation()}>
+            <button
+              className={styles.uploadCloseButton}
+              onClick={() => setUploadMode(false)}
+              title="Close"
+            >
+              ×
+            </button>
+
+            <h2 className={styles.uploadTitle}>Upload a Cat</h2>
+
+            <input
+              type="file"
+              accept="image/*"
+              id="fileUpload"
+              onChange={(e) => setFile(e.target.files[0])}
+              className={styles.hiddenInput}
+            />
+            <label htmlFor="fileUpload" className={styles.uploadDropZone}>
+              {file ? (
+                <div className={styles.uploadPreview}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt="Preview"
+                    className={styles.uploadPreviewImage}
+                  />
+                  <span className={styles.uploadFileName}>{file.name}</span>
+                </div>
+              ) : (
+                <>
+                  <span className={styles.uploadIcon}>+</span>
+                  <span className={styles.uploadDropText}>Choose a photo</span>
+                </>
+              )}
+            </label>
+
+            <TextField
+              label="Caption"
+              variant="outlined"
+              size="small"
+              fullWidth
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              sx={{
+                "& label": { color: "rgba(255,255,255,0.5)" },
+                "& label.Mui-focused": { color: "#ff9800" },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "10px",
+                  "& fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+                  "&:hover fieldset": { borderColor: "rgba(255,152,0,0.4)" },
+                  "&.Mui-focused fieldset": { borderColor: "#ff9800" },
+                  "& input": { color: "white" },
+                },
+              }}
+            />
+
+            <button
+              className={styles.uploadButton}
+              onClick={handleUpload}
+              disabled={!file || uploading}
+            >
+              {uploading ? "Uploading..." : "Upload"}
+            </button>
+
+            {uploadSuccess && (
+              <span className={styles.successMessage}>Upload successful!</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -243,10 +302,9 @@ export default function CatGallery() {
       <div
         style={{
           position: "relative",
-          width: 300,
-          height: 300,
-          marginLeft: 70,
-          padding: 40,
+          width: "min(300px, 60vw)",
+          height: "min(300px, 60vw)",
+          padding: 20,
           marginBottom: 40,
           overflow: "hidden",
           cursor: "pointer",
@@ -276,7 +334,7 @@ export default function CatGallery() {
           </p>
         ) : (
           <div className={styles.grid}>
-            {visibleKeys.map(({ key, url, caption }) => (
+            {visibleKeys.map(({ key, url, caption }, index) => (
               <div
                 key={key}
                 className={styles.catContainer}
@@ -284,18 +342,29 @@ export default function CatGallery() {
                   handleCatClick({ key, url, caption }, e)
                 }
               >
+                {!loadedImages.has(key) && (
+                  <div className={styles.imagePlaceholder}>
+                    <div className={styles.spinner}></div>
+                  </div>
+                )}
                 <Image
                   src={url}
                   alt="cat"
                   width={400}
                   height={400}
-                  loading="eager"
-                  priority
+                  {...(index < 4
+                    ? { priority: true }
+                    : { loading: "lazy" })}
+                  onLoad={() =>
+                    setLoadedImages((prev) => new Set(prev).add(key))
+                  }
                   style={{
                     width: "100%",
                     height: "auto",
                     objectFit: "contain",
                     borderRadius: "12px",
+                    opacity: loadedImages.has(key) ? 1 : 0,
+                    transition: "opacity 0.3s ease",
                   }}
                 />
               </div>
@@ -306,38 +375,77 @@ export default function CatGallery() {
 
       {/* Modal View */}
       {selectedCat && (
-        <div className={styles.modalOverlay} onClick={() => setSelectedCat(null)}>
+        <div className={styles.modalOverlay} onClick={() => { setSelectedCat(null); setEditingCaption(false); }}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <button
               className={styles.modalCloseButton}
-              onClick={() => setSelectedCat(null)}
+              onClick={() => { setSelectedCat(null); setEditingCaption(false); }}
               title="Close"
             >
               ×
             </button>
 
-
-            <div style={{ maxWidth: "800px", borderRadius: "20px", overflow: "hidden", margin: "0 auto" }}>
-              <Image
+            <div className={styles.modalImageWrapper}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={selectedCat.url}
                 alt="cat"
-                width={800}
-                height={800}
                 className={styles.modalImage}
               />
             </div>
 
-            {selectedCat.caption?.trim() && (
-              <p className={styles.modalCaption}>{selectedCat.caption}</p>
-            )}
-
-            {uploadMode && (
-              <button
-                className={styles.modalDeleteButton}
-                onClick={() => setDeleteKey(selectedCat.key)}
-              >
-                Delete
-              </button>
+            {user ? (
+              <div className={styles.modalActions}>
+                {editingCaption ? (
+                  <div className={styles.captionEditRow}>
+                    <input
+                      type="text"
+                      className={styles.captionInput}
+                      value={editCaptionValue}
+                      onChange={(e) => setEditCaptionValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveCaption();
+                        if (e.key === "Escape") setEditingCaption(false);
+                      }}
+                      placeholder="Add a caption..."
+                      autoFocus
+                    />
+                    <button
+                      className={styles.captionSaveButton}
+                      onClick={handleSaveCaption}
+                      disabled={savingCaption}
+                    >
+                      {savingCaption ? "..." : "Save"}
+                    </button>
+                    <button
+                      className={styles.captionCancelButton}
+                      onClick={() => setEditingCaption(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <p
+                    className={styles.modalCaptionEditable}
+                    onClick={() => {
+                      setEditCaptionValue(selectedCat.caption || "");
+                      setEditingCaption(true);
+                    }}
+                  >
+                    {selectedCat.caption?.trim() || "Add caption..."}
+                  </p>
+                )}
+                <button
+                  className={styles.modalDeleteButton}
+                  onClick={() => setDeleteKey(selectedCat.key)}
+                >
+                  Delete
+                </button>
+              </div>
+            ) : (
+              selectedCat.caption?.trim() && (
+                <p className={styles.modalCaption}>{selectedCat.caption}</p>
+              )
             )}
           </div>
         </div>
