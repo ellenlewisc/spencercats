@@ -6,7 +6,7 @@ const supabase = createClient(
 );
 
 export async function PATCH(req, { params }) {
-  const { id } = params;
+  const { id } = await params;
 
   if (!id) return new Response("Missing image ID", { status: 400 });
 
