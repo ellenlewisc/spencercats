@@ -1,0 +1,9 @@
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+# Block installing any version published less than 1 day ago (supply-chain cooldown).
+minimumReleaseAge: 1440
+# Only these vetted native packages may run install scripts; every other package is blocked.
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver
