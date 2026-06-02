@@ -21,7 +21,7 @@ body {
   font-family: var(--font-alfa-slab), serif;
   font-weight: 400;
   font-style: normal;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
 }

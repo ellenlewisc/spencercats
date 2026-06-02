@@ -552,10 +552,19 @@
   box-shadow: 0 0 20px rgba(255, 152, 0, 0.25);
 }
 
+.modalButtons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+
 .modalButtons button {
+  flex: 1;
   border: none;
   border-radius: 6px;
-  padding: 8px 14px;
+  padding: 10px 14px;
+  min-height: 44px;
   cursor: pointer;
   font-weight: 600;
 }
@@ -783,6 +792,25 @@
   .captionInput {
     width: 100%;
     font-size: 0.9rem;
+  }
+
+  .lbCaptionBar {
+    flex-wrap: wrap;
+    width: min(560px, calc(100vw - 24px));
+    bottom: calc(env(safe-area-inset-bottom) + 14px);
+  }
+
+  .lbCaptionBar .captionInput {
+    flex: 1 1 100%;
+  }
+
+  .captionSaveButton,
+  .captionCancelButton {
+    flex: 1;
+  }
+
+  .modalButtons {
+    gap: 20px;
   }
 
   .uploadPanel {
