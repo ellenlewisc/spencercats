@@ -431,16 +431,15 @@
 
 .masonry {
   display: flex;
+  gap: 16px;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  margin-left: -16px;
   padding: 0 16px;
   box-sizing: border-box;
 }
 
 .masonryColumn {
-  padding-left: 16px;
   background-clip: padding-box;
 }
 
@@ -705,12 +704,8 @@
 /* --- Mobile --- */
 @media (max-width: 500px) {
   .masonry {
-    margin-left: -10px;
+    gap: 10px;
     padding: 0 10px;
-  }
-
-  .masonryColumn {
-    padding-left: 10px;
   }
 
   .masonryTile {
