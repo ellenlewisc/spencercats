@@ -56,6 +56,11 @@ export default function CatGallery() {
     router.push("/login");
   };
 
+  const authHeaders = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session ? { Authorization: `Bearer ${session.access_token}` } : {};
+  };
+
   const fetchImages = useCallback(async (pageToFetch = 1, force = false) => {
     if (!force && loadingRef.current) return;
     if (!force && !hasMoreRef.current) return;
@@ -140,6 +145,7 @@ export default function CatGallery() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
+        headers: await authHeaders(),
         body: formData,
       });
       if (!res.ok) throw new Error("Upload failed");
@@ -161,6 +167,7 @@ export default function CatGallery() {
     try {
       const res = await fetch(`/api/delete/${encodeURIComponent(key)}`, {
         method: "DELETE",
+        headers: await authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to delete");
 
@@ -179,7 +186,7 @@ export default function CatGallery() {
     try {
       const res = await fetch(`/api/caption/${encodeURIComponent(selectedCat.key)}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({ caption: editCaptionValue }),
       });
       if (!res.ok) throw new Error("Failed to update caption");
