@@ -1,12 +1,20 @@
 .loginButton {
   padding: 8px 16px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 6px;
   background-color: #ff9800;
   color: white;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.1s ease;
+}
+
+.loginButton:active {
+  transform: scale(0.94);
 }
 
 .loginButton:hover {
@@ -153,6 +161,7 @@
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
+  min-height: 44px;
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
@@ -166,11 +175,12 @@
 }
 
 .captionCancelButton {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   padding: 8px 12px;
+  min-height: 44px;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -209,8 +219,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-bottom: 80px;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
   overflow-x: hidden;
+}
+
+.topControls {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 16px);
+  right: calc(env(safe-area-inset-right) + 16px);
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+}
+
+.hero {
+  position: relative;
+  width: min(300px, 60vw);
+  height: min(300px, 60vw);
+  padding: 20px;
+  margin-bottom: 40px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.errorMessage {
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  font-size: 1rem;
+  padding: 40px 16px;
 }
 
 /* --- Hero Section --- */
@@ -393,94 +429,79 @@
 }
 
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  /* 4 per row on large screens */
-  gap: 20px;
+.masonry {
+  display: flex;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  margin-left: -16px;
   padding: 0 16px;
   box-sizing: border-box;
 }
 
+.masonryColumn {
+  padding-left: 16px;
+  background-clip: padding-box;
+}
 
-.catContainer {
+.masonryTile {
   position: relative;
-  overflow: hidden;
+  margin-bottom: 16px;
   border-radius: 12px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
   box-shadow: 0 0 20px rgba(255, 152, 0, 0.2);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1 / 1;
+  transition: box-shadow 0.3s ease;
 }
 
-
-.catContainer img {
-  border-radius: 12px;
+.masonryTile img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.imagePlaceholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(30, 30, 30, 0.8);
+  height: auto;
+  object-fit: contain;
+  display: block;
   border-radius: 12px;
-  z-index: 1;
 }
 
-.modalPlaceholder {
+.skeletonTile {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(26, 26, 26, 0.9);
-  border-radius: 16px;
-  z-index: 1;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 12px;
+  background: linear-gradient(100deg, #1c1c1c 30%, #2a2a2a 50%, #1c1c1c 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
 }
 
-.catContainer:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 0 20px rgba(255, 152, 0, 0.4);
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }
 
-.catContainer:active {
-  transform: scale(0.96);
-  transition: transform 0.1s ease;
+.bottomSkeletons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 16px auto 0;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
-.deleteButton {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(255, 0, 0, 0.7);
-  color: white;
-  border: none;
-  padding: 4px 8px;
-  cursor: pointer;
-  border-radius: 50%;
-  font-weight: bold;
-  font-size: 1rem;
-  opacity: 0;
-  transition: opacity 0.2s, background 0.2s;
+.bottomSkeletons .skeletonTile {
+  position: static;
 }
 
-.catContainer:hover .deleteButton {
-  opacity: 1;
+.sentinel {
+  width: 100%;
+  height: 1px;
 }
 
-.deleteButton:hover {
-  background: red;
+@media (hover: hover) and (pointer: fine) {
+  .masonryTile:hover {
+    box-shadow: 0 0 24px rgba(255, 152, 0, 0.45);
+  }
 }
 
 /* --- Floating Meows --- */
@@ -552,17 +573,28 @@
 /* --- Floating Cat Button --- */
 .catToggleButton {
   padding: 8px 16px;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 6px;
   background-color: #ff9800;
   color: white;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.1s ease;
 }
 
-.catToggleButton:hover {
-  background-color: #e68900;
+.catToggleButton:active {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .catToggleButton:hover {
+    background-color: #e68900;
+  }
 }
 
 
@@ -627,14 +659,14 @@
 
 /* --- Tablet (iPad) --- */
 @media (max-width: 1200px) {
-  .grid {
+  .bottomSkeletons {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 /* --- Small Tablet / Large Phone --- */
 @media (max-width: 800px) {
-  .grid {
+  .bottomSkeletons {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
@@ -663,10 +695,22 @@
 
 /* --- Mobile --- */
 @media (max-width: 500px) {
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 0 12px;
+  .masonry {
+    margin-left: -10px;
+    padding: 0 10px;
+  }
+
+  .masonryColumn {
+    padding-left: 10px;
+  }
+
+  .masonryTile {
+    margin-bottom: 10px;
+  }
+
+  .bottomSkeletons {
+    gap: 10px;
+    padding: 0 10px;
   }
 
   .title {
@@ -742,9 +786,13 @@
   }
 
   .uploadPanel {
-    width: 95%;
-    padding: 20px;
-    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100dvh;
+    border-radius: 0;
+    justify-content: center;
+    padding: 24px calc(16px + env(safe-area-inset-left)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-right));
+    gap: 14px;
   }
 
   .uploadDropZone {
@@ -756,16 +804,80 @@
     font-size: 1.1rem;
   }
 
-  .loginButton {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-  }
-
   .catToggleButton {
-    padding: 6px 12px;
+    position: fixed;
+    right: calc(env(safe-area-inset-right) + 16px);
+    bottom: calc(env(safe-area-inset-bottom) + 16px);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 24px rgba(255, 152, 0, 0.3);
+    z-index: 100;
   }
 
-  .catContainer:hover {
-    transform: none;
+  .modalContent img {
+    max-height: 65dvh;
+  }
+}
+
+/* --- Lightbox (yet-another-react-lightbox) --- */
+.lbToolButton {
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0 14px;
+  min-height: 40px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-quicksand), sans-serif;
+}
+
+.lbToolButton:active {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lbToolButton:hover {
+    background: rgba(255, 152, 0, 0.9);
+    color: #121212;
+    border-color: #ff9800;
+  }
+}
+
+.lbCaptionBar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(560px, 92vw);
+  max-width: 92vw;
+  padding: 10px;
+  background: rgba(20, 20, 20, 0.92);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 12px;
+  z-index: 10;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+.lbCaptionBar .captionInput {
+  flex: 1;
+  min-width: 0;
+}
+
+:global(.yarl__root) {
+  --yarl__color_backdrop: rgba(10, 10, 10, 0.92);
+  --yarl__slide_captions_container_background: rgba(10, 10, 10, 0.5);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :global(.yarl__button:hover) {
+    color: #ff9800;
   }
 }

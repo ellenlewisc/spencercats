@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@11.5.1",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -14,9 +15,13 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.4",
     "@supabase/supabase-js": "^2.75.0",
+    "motion": "12.40.0",
     "next": "^15.5.14",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-masonry-css": "1.0.16",
+    "sonner": "2.0.7",
+    "yet-another-react-lightbox": "3.32.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
