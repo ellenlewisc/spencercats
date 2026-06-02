@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import styles from "./page.module.css";
 import { TextField } from "@mui/material";
 import Image from "next/image";
@@ -9,7 +10,6 @@ import { motion, AnimatePresence, MotionConfig } from "motion/react";
 import Masonry from "react-masonry-css";
 import { toast } from "sonner";
 import Lightbox from "yet-another-react-lightbox";
-import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Captions from "yet-another-react-lightbox/plugins/captions";
 import Counter from "yet-another-react-lightbox/plugins/counter";
 import "yet-another-react-lightbox/styles.css";
@@ -438,11 +438,10 @@ export default function CatGallery() {
           close={() => { setLightboxOpen(false); setEditingCaption(false); }}
           index={lightboxIndex}
           slides={slides}
-          plugins={[Zoom, Captions, Counter]}
+          plugins={[Captions, Counter]}
           carousel={{ finite: true }}
-          zoom={{ maxZoomPixelRatio: 3, doubleTapDelay: 300 }}
           captions={{ descriptionTextAlign: "center" }}
-          counter={{ container: { style: { top: "unset", bottom: 0 } } }}
+          counter={{ container: { style: { top: 0, left: 0, bottom: "unset" } } }}
           on={{
             view: ({ index }) => {
               setLightboxIndex(index);
@@ -498,36 +497,40 @@ export default function CatGallery() {
         ))}
 
         {/* Delete Confirmation Modal */}
-        <AnimatePresence>
-          {deleteKey && (
-            <motion.div
-              className={styles.modalOverlay}
-              style={{ zIndex: 10001 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <motion.div
-                className={styles.modal}
-                initial={{ opacity: 0, scale: 0.92, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 10 }}
-                transition={{ type: "spring", stiffness: 300, damping: 26 }}
-              >
-                <p>Are you sure you want to delete this cat photo?</p>
-                <div className={styles.modalButtons}>
-                  <button className={styles.modalCancel} onClick={() => setDeleteKey(null)}>
-                    Cancel
-                  </button>
-                  <button className={styles.modalConfirm} onClick={() => handleDelete(deleteKey)}>
-                    Delete
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
+        {typeof document !== "undefined" &&
+          createPortal(
+            <AnimatePresence>
+              {deleteKey && (
+                <motion.div
+                  className={styles.modalOverlay}
+                  style={{ zIndex: 12000 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <motion.div
+                    className={styles.modal}
+                    initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.96, y: 10 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 26 }}
+                  >
+                    <p>Are you sure you want to delete this cat photo?</p>
+                    <div className={styles.modalButtons}>
+                      <button className={styles.modalCancel} onClick={() => setDeleteKey(null)}>
+                        Cancel
+                      </button>
+                      <button className={styles.modalConfirm} onClick={() => handleDelete(deleteKey)}>
+                        Delete
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
           )}
-        </AnimatePresence>
       </div>
     </MotionConfig>
   );
