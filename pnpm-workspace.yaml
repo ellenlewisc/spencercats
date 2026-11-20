@@ -7,3 +7,8 @@ minimumReleaseAge: 1440
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver
+# Patched transitive versions for advisories in eslint and postcss dependencies.
+overrides:
+  "brace-expansion@<1.1.21": "1.1.21"
+  "@humanfs/node@<0.16.8": "0.16.8"
+  "source-map-js@<1.2.4": "1.2.4"
