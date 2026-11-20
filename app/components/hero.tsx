@@ -21,7 +21,7 @@ export function Hero({ onMeow }: HeroProps) {
           meow meow pspspsi
         </p>
         <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-soft">
-          A little scrapbook of cat photos, made for Spencie. Tap the cat. You know you want to.
+          A little scrapbook of Spencer and cats.
         </p>
       </div>
 
